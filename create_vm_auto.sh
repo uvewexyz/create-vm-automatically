@@ -1,32 +1,35 @@
 #!/bin/bash
 
+# Variables section
+src_dir="/tmp/images"
+dst_dir="/tmp/workdir"
+timestamp=$(date +%d_%m_%y_%H_%M_%S)
+ubuntu22="jammy-server-cloudimg-amd64.img"
+ubuntu20="focal-server-cloudimg-amd64.img"
+almalinux9="almaLinux9-latest.x86_64.img"
+centosstream9="centos-stream9-latest.img"
+openwrt="openwrt-24.10.1-x86-generic-ext4-combined.img"
 
-ubuntu22="/tmp/<image_dir>/<your_ubuntu22.img>"
-ubuntu20="/tmp/<image_dir>/<your_ubuntu20.img>"
-almalinux9="/tmp/<image_dir>/<your_almaLinux9.img>"
-centosstream9="/tmp/<image_dir>/<your_centos-stream9.img>"
-openwrt="/tmp/<image_dir>/<your_openwrt.img>"
-
-
+# Specify the specs for the VM
 echo "-------------------------------------------------------------------------------------"
-read -n 1 -e -i "Y" -p "Welcome, this is the script to create a VM. Want to continue? (Y/n, default yes) : " RESPONSE;
+read -n 1 -e -i "Y" -p "Welcome, this is the script to create a VM. Want to continue? (Y/n, default yes) : " response;
 echo "-------------------------------------------------------------------------------------"
 sleep 1;
 
-if [[ "$RESPONSE" != "Y" && "$RESPONSE" != "y" ]]; then
+if [[ "$response" != "Y" && "$response" != "y" ]]; then
 
   echo "Goodbye...";
   exit 1;
 
 fi
 
-read -e -i "my-vm$(date +%d_%m_%y)" -p "Create the VM name: " VMNAME;
+read -e -i "my-vm$(date +%d_%m_%y)" -p "Create the VM name: " vm_name;
 echo "-------------------------------------------------------------------------------------"
 
-read -e -i "512" -p "Size memory to allocate for the VM, in MiB: " VMMEMORY;
+read -e -i "512" -p "Size memory to allocate for the VM, in MiB: " vm_mem;
 echo "-------------------------------------------------------------------------------------"
 
-read -e -i "1" -p "Size of virtual cpus for the VM: " VMVCPU;
+read -e -i "1" -p "Size of virtual cpus for the VM: " vm_vcpu;
 echo "-------------------------------------------------------------------------------------"
 
 echo -e "
@@ -36,100 +39,69 @@ echo -e "
 4.) centosstream9
 5.) openwrt
 -------------------------------------------------------------------------------------\n"
-read -e -n 1 -i "5" -p "Select number of the menu to your VM OS: " VMOS;
+read -e -n 1 -i "5" -p "Select number of the menu to your VM OS: " vm_os;
 echo "-------------------------------------------------------------------------------------"
 
-read -e -i "5" -p "Allocacte new secondary disk image in Gigabyte to the VM: " VMDISK2;
+read -e -i "5" -p "Allocacte new secondary disk image in Gigabyte to the VM: " vm_disk2;
 echo "-------------------------------------------------------------------------------------"
 
 sleep 1;
 
-if virsh list --all --name | grep -qwF -- "$VMNAME"; then
+if virsh list --all --name | grep -qwF -- "$vm_name"; then
 
-  echo "-------------------------------------------------------------------------------------"
   echo "This name is already use, exit script...";
   echo "-------------------------------------------------------------------------------------"
   exit 1;
 
-elif [[ "$VMOS" == "1" ]]; then
-  
-  echo "-------------------------------------------------------------------------------------"
-  echo "Create VM name '$VMNAME' "
-  echo "-------------------------------------------------------------------------------------"
-  sleep 2;
-  virt-install -n $VMNAME --memory $VMMEMORY --vcpus $VMVCPU --import --disk $ubuntu22 --disk size=$VMDISK2  --os-variant detect=on --network bridge=$(virsh net-list --all |awk '{print $1}'|sed -n '3p') --noautoconsole;
-  echo "Result: "
-  sleep 2;
-  virsh list --all;
-  sleep 2;
-  echo "-------------------------------------------------------------------------------------"
-  echo "Successfully create VM, see you... "
-  echo "-------------------------------------------------------------------------------------"
-
-elif [[ "$VMOS" == "2" ]]; then
-
-  echo "-------------------------------------------------------------------------------------"
-  echo "Create VM name '$VMNAME' "
-  echo "-------------------------------------------------------------------------------------"
-  sleep 2;
-  virt-install -n $VMNAME --memory $VMMEMORY --vcpus $VMVCPU --import --disk $ubuntu20 --disk size=$VMDISK2  --os-variant detect=on --network bridge=$(virsh net-list --all |awk '{print $1}'|sed -n '3p') --noautoconsole;
-  echo "Result: "
-  sleep 2;
-  virsh list --all;
-  sleep 2;
-  echo "-------------------------------------------------------------------------------------"
-  echo "Successfully create VM, see you... "
-  echo "-------------------------------------------------------------------------------------"
-
-elif [[ "$VMOS" == "3" ]]; then
-
-  echo "-------------------------------------------------------------------------------------"
-  echo "Create VM name '$VMNAME' "
-  echo "-------------------------------------------------------------------------------------"
-  sleep 2;
-  virt-install -n $VMNAME --memory $VMMEMORY --vcpus $VMVCPU --import --disk $almalinux9 --disk size=$VMDISK2  --os-variant detect=on --network bridge=$(virsh net-list --all |awk '{print $1}'|sed -n '3p') --noautoconsole;
-  echo "Result: "
-  sleep 2;
-  virsh list --all;
-  sleep 2;
-  echo "-------------------------------------------------------------------------------------"
-  echo "Successfully create VM, see you... "
-  echo "-------------------------------------------------------------------------------------"
-
-elif [[ "$VMOS" == "4" ]]; then
-
-  echo "-------------------------------------------------------------------------------------"
-  echo "Create VM name '$VMNAME' "
-  echo "-------------------------------------------------------------------------------------"
-  sleep 2;
-  virt-install -n $VMNAME --memory $VMMEMORY --vcpus $VMVCPU --import --disk $centosstream9 --disk size=$VMDISK2  --os-variant detect=on --network bridge=$(virsh net-list --all |awk '{print $1}'|sed -n '3p') --noautoconsole;
-  echo "Result: "
-  sleep 2;
-  virsh list --all;
-  sleep 2;
-  echo "-------------------------------------------------------------------------------------"
-  echo "Successfully create VM, see you... "
-  echo "-------------------------------------------------------------------------------------"
-
-elif [[ "$VMOS" == "5" ]]; then
-
-  echo "-------------------------------------------------------------------------------------"
-  echo "Create VM name '$VMNAME' "
-  echo "-------------------------------------------------------------------------------------"
-  sleep 2;
-  virt-install -n $VMNAME --memory $VMMEMORY --vcpus $VMVCPU --import --disk $openwrt --disk size=$VMDISK2  --os-variant detect=on --network bridge=$(virsh net-list --all |awk '{print $1}'|sed -n '3p') --noautoconsole;
-  echo "Result: "
-  sleep 2;
-  virsh list --all;
-  sleep 2;
-  echo "-------------------------------------------------------------------------------------"
-  echo "Successfully create VM, see you... "
-  echo "-------------------------------------------------------------------------------------"
-
-else
-
-  echo "Option not found!. Please select 1, 2, 3, 4, or 5!!!"
-  exit 1;
-
 fi
 
+copy_image() {
+  src_img=$1
+  dst_img=$2
+  cp "$src_dir/$src_img" "$dst_dir/$dst_img"
+  echo "$dst_dir/$dst_img"
+}
+
+case "$vm_os" in
+  1)
+    vm_disk1=$(copy_image "$ubuntu22" "ubuntu22-$timestamp.img")
+    ;;
+  2)
+    vm_disk1=$(copy_image "$ubuntu20" "ubuntu20-$timestamp.img")
+    ;;
+  3)
+    vm_disk1=$(copy_image "$almalinux9" "almalinux9-$timestamp.img")
+    ;;
+  4)
+    vm_disk1=$(copy_image "$centosstream9" "centosstream9-$timestamp.img")
+    ;;
+  5)
+    vm_disk1=$(copy_image "$openwrt" "openwrt-$timestamp.img")
+    ;;
+  *)
+    echo "Option not found!. Please select 1, 2, 3, 4, or 5!!!"
+    exit 1
+    ;;
+esac
+
+# Process the VM creation
+echo "-------------------------------------------------------------------------------------"
+echo "Create VM name '$vm_name' ";
+echo "-------------------------------------------------------------------------------------"
+sleep 2;
+virt-install -n "$vm_name" \
+  --memory "$vm_mem" \
+  --vcpus "$vm_vcpu" \
+  --import \
+  --disk "$vm_disk1" \
+  --disk size="$vm_disk2" \
+  --os-variant detect=on \
+  --network bridge=$(virsh net-list --all | awk '{print $1}' | sed -n '3p') \
+  --noautoconsole;
+
+echo "Result: ";
+sleep 2;
+virsh list --all;
+echo "-------------------------------------------------------------------------------------"
+echo "VM '$vm_name' created successfully!";
+echo "-------------------------------------------------------------------------------------"
