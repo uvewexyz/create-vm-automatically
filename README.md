@@ -61,34 +61,21 @@ cd .. && mv create-vm-automatically workdir
 cd workdir
 ```
 
-5. Before using the `create_vm_auto.sh` script, copy the image first(avoiding to download the image again, as the VM will use its image)
-```bash
-cp /tmp/images/jammy-server-cloudimg-amd64.img /tmp/workdir && cp /tmp/images/focal-server-cloudimg-amd64.img /tmp/workdir &&  cp /tmp/images/almaLinux9-latest.x86_64.img /tmp/workdir && cp /tmp/images/centos-stream9-latest.img /tmp/workdir && cp /tmp/images/openwrt-24.10.1-x86-generic-ext4-combined.img /tmp/workdir
-```
-
-6. Edit the  `create_vm_auto.sh` script, pay attention in this variable section. Adjust the variable value with the path of the image copy
-
-```bash
-### Before ###
-ubuntu22="/tmp/<image_dir>/<your_ubuntu22.img>"
-ubuntu20="/tmp/<image_dir>/<your_ubuntu20.img>"
-almalinux9="/tmp/<image_dir>/<your_almaLinux9.img>"
-centosstream9="/tmp/<image_dir>/<your_centos-stream9.img>"
-openwrt="/tmp/<image_dir>/<your_openwrt.img>"
-```
-
-```bash
-### After ###
-ubuntu22="/tmp/workdir/jammy-server-cloudimg-amd64.img"
-ubuntu20="/tmp/workdir/focal-server-cloudimg-amd64.img"
-almalinux9="/tmp/workdir/almaLinux9-latest.x86_64.img"
-centosstream9="/tmp/workdir/centos-stream9-latest.img"
-openwrt="/tmp/workdir/openwrt-24.10.1-x86-generic-ext4-combined.img"
-```
-
-7. Usage example
+5. Usage example
 ```bash
 ./create_vm_auto.sh
 ```
-![image](https://github.com/user-attachments/assets/a52e4526-68ce-4719-9671-c4ef91a4e293)
-![image](https://github.com/user-attachments/assets/f330e284-3ae6-4436-8bc0-fe4880c59bba)
+
+6. Pict
+![image](https://github.com/user-attachments/assets/221769b9-c7cc-4f0e-ad8b-a508a73b5b7c)
+![image](https://github.com/user-attachments/assets/75f98b04-1d98-4c72-b70a-fac85ca5ea38)
+
+7. After running the script you will get new image from the VM installation
+```bash
+ls -l /tmp/workdir/
+
+### Output ###
+...
+-rw-r--r-- 1 libvirt-qemu kvm 126353408 May 17 14:19 /tmp/workdir/openwrt-17_05_25_14_18_47.img
+...
+```
