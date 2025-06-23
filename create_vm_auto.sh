@@ -31,7 +31,7 @@ valid_start() {
 
 valid_start;
 
-# Validate virtualization support
+# Check and validate this device support virtualization
 valid_support() {
   echo "$line"
   echo "Checking virtualization support";
@@ -47,7 +47,7 @@ valid_support() {
 
 valid_support;
 
-# Validate & Check libvirt dependencies package
+# Check and validate libvirt dependencies package
 valid_package() {
   echo "$line"
   echo "Checking libvirt dependencies package";
@@ -68,7 +68,7 @@ valid_package() {
 
 valid_package;
 
-# Validate nested virtualisation
+# Check and validate this device supporting nested virtualisation
 valid_nested() {
   echo "$line"
   echo "Checking nested virtualization";
@@ -100,7 +100,7 @@ valid_nested() {
 
 valid_nested;
 
-# Validate the current user is added to the libvirt group
+# Check and validate the user is member from libvirt group
 valid_user() {
   echo "$line"
   echo -e "Checking if the user $red $(whoami) $reset is a member of the libvirt group";
@@ -129,7 +129,7 @@ valid_user() {
 
 valid_user;
 
-# Variables section
+# Define several variables
 src_dir="/var/lib/libvirt/images"
 dst_dir="/var/lib/libvirt/workdir"
 timestamp=$(date +%d_%m_%y_%H_%M_%S)
@@ -164,7 +164,7 @@ valid_workdir() {
 
 valid_workdir;
 
-# Validate if the VM name already exists
+# Validate if the VM name is ready to use
 valid_name() {
   # Prompt to specify th VM name
   echo "$line"
@@ -181,7 +181,7 @@ valid_name() {
 
 valid_name;
 
-# Validate the VM memory size
+# Fill count the memory/RAM size to VM
 valid_mem() {
   # Prompt to specify thre VM memory size
   vm_mem_max="$(grep -i "MemAvailable" /proc/meminfo | awk '{print $2/1048}' | cut -d. -f1)"
@@ -201,7 +201,7 @@ valid_mem() {
 
 valid_mem;
 
-# Validate allocating the VM vCPU
+# Fill and allocate count vCPU to VM
 valid_vcpu() {
   # Prompt to specify the VM vCPU size
   echo -e "Minimal input: $red 1 $reset vCPU";
@@ -220,7 +220,7 @@ valid_vcpu() {
 
 valid_vcpu;
 
-# Validate the OS VM
+# Selecting the OS to VM
 valid_os() {
   # Prompt to select the OS for the VM
   declare -a os_lists=("ubuntu22.04" "ubuntu20.04" "almalinux9" "alpinelinux3.21" "centos-stream9" "openwrt");
@@ -241,7 +241,7 @@ valid_os() {
 
 valid_os;
 
-# Prompt to specify the size of the primary disk
+# Specify the size of the primary disk
 read -e -i "15" -p "Specify size for the primary disk image in Gigabyte: " vm_disk1_size;
 
 # Function to create, specify size, and formatting new disk images
@@ -309,7 +309,7 @@ case "$vm_os" in
 esac
 # esac
 
-# Prompt to specify the size of the secondary disk
+# Specify the size of the secondary disk
 read -e -i "5" -p "Specify size for a new secondary disk image in Gigabyte: " vm_disk2_size;
 echo "$line"
 
@@ -365,7 +365,7 @@ valid_vir_net() {
   fi
 }
 
-# Validate the IP address
+# Select IP Addr and validate the segmen IP
 valid_ip() {
   ip_addr="${ip_gw%%/*}"
   ip_net="$(ipcalc -n "$ip_gw" | awk -F: '/Network/ {gsub(/ /, "", $2); print $2}' | cut -d/ -f1)"
@@ -599,7 +599,7 @@ else
   echo "Result: ";
 fi
 
-# Validate if the VM is already created
+# Validate if the VM is successfully created or not
 valid_final_vm() {
   if virsh list --all --name | grep -qwF -- "$vm_name"; then
     echo -e "Successfully created VM with name $red $vm_name $reset";
