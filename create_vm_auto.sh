@@ -11,10 +11,10 @@ echo -e "
 #  /\ \/\ \/\__  _\ /\  __ \/\__  _\/\ \/\ \/\__  _\      #
 #  \ \ \ \ \/_/\ \/ \ \ \_\ \/_/\ \/\ \ \ \ \/_/\ \/      #
 #   \ \ \ \ \ \ \ \  \ \ _  /  \ \ \ \ \ \ \ \ \ \ \      #
-#    \ \ \_/ \ \_\ \__\ \ \/\ \   \ \ \ \ \ \_\ \ \_\ \_   #
-#     \ \____/ /\______\ \_\/\_\   \ \_\ \ \_____\/\____\  #
-#      \_____/ \/_____/ \/_/\/ /  \/_/  \/_____/\/_____/  #
-#  Virtui v1 by uvewexyz                                  #
+#    \ \ \_/ \ \_\ \__\ \ \ \ \ \ \ \ \ \ \_\ \ \ \ \__   #
+#     \ \____/ /\______\ \_\ \_\ \ \_\ \ \_____\/\_____\  #
+#      \_____/ \/_____/ \/_/\/_/  \/_/  \/_____/\/_____/  #
+#  Virtui v3 by uvewexyz                                  #
 ###########################################################
 "
 
@@ -313,7 +313,7 @@ esac
 read -e -i "5" -p "Specify size for a new secondary disk image in Gigabyte: " vm_disk2_size;
 echo "$line"
 
-# Validate attached virtual network to the VM 
+# Validate attached virtual network and the interface on the hypervisor 
 valid_vir_net() {
   # Declare arrays to keep the virtual network names and interfaces
   declare -a net_name
@@ -418,6 +418,7 @@ valid_processing_vm() {
   echo "Result: ";
 }
 
+# Load the user-data file based on the selected OS
 if [[ "$vm_os" == "ubuntu22.04" || "$vm_os" == "ubuntu20.04" ]]; then
   valid_vir_net;
   valid_ip;
