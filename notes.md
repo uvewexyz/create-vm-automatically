@@ -6,12 +6,12 @@ chmod o+r /var/lib/libvirt/images/
 ```bash
 sed -i 's/^#unix_sock_group = "libvirt"/unix_sock_group = "libvirt"/g' /etc/libvirt/libvirtd.conf
 ```
-# Make to easy while change root pass. You can do this to other user
+#### Make to easy while change root pass. You can do this to other user
 ```bash
 echo "user1:Str0ngPass!" | chpasswd
 ```
 
-# The process queue in the script:
+#### The process queue in the script:
 ```bash
 - Start of the script
                 |
