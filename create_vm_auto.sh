@@ -1,8 +1,18 @@
 #!/bin/bash
 
+# Define several variables
 red="\033[0;31m"
 reset="\033[0m"
 line="-------------------------------------------------------------------------------------"
+src_dir="/var/lib/libvirt/images"
+dst_dir="/var/lib/libvirt/workdir"
+timestamp=$(date +%d_%m_%y_%H_%M_%S)
+ubuntu22="jammy-server-cloudimg-amd64.img"
+ubuntu20="focal-server-cloudimg-amd64.img"
+almalinux9="AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
+alpinelinux21="alpine-virt-3.21.3-x86.qcow2"
+centosstream9="CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2"
+openwrt="openwrt-24.10.1-x86-generic-generic-ext4-combined-efi.qcow2"
 
 echo -e "
 ###########################################################
@@ -129,17 +139,6 @@ valid_user() {
 
 valid_user;
 
-# Define several variables
-src_dir="/var/lib/libvirt/images"
-dst_dir="/var/lib/libvirt/workdir"
-timestamp=$(date +%d_%m_%y_%H_%M_%S)
-ubuntu22="jammy-server-cloudimg-amd64.img"
-ubuntu20="focal-server-cloudimg-amd64.img"
-almalinux9="AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
-alpinelinux21="alpine-virt-3.21.3-x86.qcow2"
-centosstream9="CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2"
-openwrt="openwrt-24.10.1-x86-generic-generic-ext4-combined-efi.qcow2"
-
 # Validate workdir directory
 valid_workdir() {
   echo "$line"
@@ -189,7 +188,7 @@ valid_mem() {
   echo -e "Maximal input: $red $vm_mem_max $reset MiB";
   read -e -p "Specify size memory to allocate for the VM, in MiB: " vm_mem;
   if [[ "$vm_mem" -lt 128 || "$vm_mem" -ge "$vm_mem_max" ]]; then
-    echo "Invalid memory size! Enter value between $red 128 $reset MiB - $red $vm_mem_max $reset MiB";
+    echo -e "Invalid memory size! Enter value between $red 128 $reset MiB - $red $vm_mem_max $reset MiB";
     echo "$line";
     sleep 3;
     clear && valid_mem;
@@ -208,7 +207,7 @@ valid_vcpu() {
   echo -e "Maximal input: $red $(nproc) $reset vCPU";
   read -e -i "1" -p "Size of virtual cpus for the VM: " vm_vcpu;
   if [[ "$vm_vcpu" -lt 1  || "$vm_vcpu" -ge "$(nproc)" ]]; then
-    echo "Invalid vCPU size! Enter value between $red 1 $reset vCPU - $red $(nproc) $reset vCPU";
+    echo -e "Invalid vCPU size! Enter value between $red 1 $reset vCPU - $red $(nproc) $reset vCPU";
     echo "$line";
     sleep 3;
     clear && valid_vcpu;
@@ -578,6 +577,11 @@ runcmd:
 EOF
   valid_processing_vm;
 else
+  echo -n "OpenWRT isn't load your input ip address.
+  This OS will be use selected network interface.
+  You must manually configure the ip address after the VM is created.";
+  echo "$line"
+  valid_vir_net;
   echo -e "Next to the process creating VM"
   sleep 2;
   echo "$line"
@@ -594,7 +598,6 @@ else
     --osinfo detect=on,name="$vm_os" \
     --network bridge="$vm_if_select" \
     --noautoconsole;
-
   sleep 2;
   echo "Result: ";
 fi
