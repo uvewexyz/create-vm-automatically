@@ -308,8 +308,6 @@ case "$vm_os" in
 esac
 
 valid_peripheral_disk_size() {
-  disk_peripheral=()
-  read -e -p "Specify size for the peripheral disk image in Gigabyte: " peripheral_disk_size;
   if [[ "$peripheral_disk_size" =~ ^[0-9]+$ && "$peripheral_disk_size" -gt 0 ]]; then
     disk_peripheral+=("--disk size=$peripheral_disk_size");
   else
@@ -321,6 +319,8 @@ valid_peripheral_disk_size() {
 valid_peripheral_disk_count() {
   read -e -p "How many peripheral disk do you want to add to the VM?: " peripheral_disk_count;
   if [[ "$peripheral_disk_count" =~ ^[0-9]+$ && "$peripheral_disk_count" -gt 0 ]]; then
+    disk_peripheral=()
+    read -e -p "Specify size for the peripheral disk image in Gigabyte: " peripheral_disk_size;
     # Loop to create the specified number of peripheral disks
     for ((i = 1; i <= peripheral_disk_count; i++)); do
       valid_peripheral_disk_size;
