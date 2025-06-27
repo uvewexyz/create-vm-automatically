@@ -311,7 +311,7 @@ valid_peripheral_disk_size() {
   disk_peripheral=()
   read -e -p "Specify size for the peripheral disk image in Gigabyte: " peripheral_disk_size;
   if [[ "$peripheral_disk_size" =~ ^[0-9]+$ && "$peripheral_disk_size" -gt 0 ]]; then
-    disk_peripheral+=("--disk size=${peripheral_disk_size},format=qcow2");
+    disk_peripheral+=("--disk size=$peripheral_disk_size");
   else
     echo "Invalid input size! Please enter right size!";
     sleep 2 && clear && valid_peripheral_disk_size;
