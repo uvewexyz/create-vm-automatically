@@ -306,11 +306,49 @@ case "$vm_os" in
     clear && valid_os;
     ;;
 esac
-# esac
 
-# Specify the size of the secondary disk
-read -e -i "5" -p "Specify size for a new secondary disk image in Gigabyte: " vm_disk2_size;
-echo "$line"
+valid_peripheral_disk_size() {
+  disk_peripheral=()
+  read -e -p "Specify size for the peripheral disk image in Gigabyte: " peripheral_disk_size;
+  if [[ "$peripheral_disk_size" =~ ^[0-9]+$ && "$peripheral_disk_size" -gt 0 ]]; then
+    disk_peripheral+=("--disk size=${peripheral_disk_size},format=qcow2");
+  else
+    echo "Invalid input size! Please enter right size!";
+    sleep 2 && clear && valid_peripheral_disk_size;
+  fi
+}
+
+valid_peripheral_disk_count() {
+  read -e -p "How many peripheral disk do you want to add to the VM?: " peripheral_disk_count;
+  if [[ "$peripheral_disk_count" =~ ^[0-9]+$ && "$peripheral_disk_count" -gt 0 ]]; then
+    # Loop to create the specified number of peripheral disks
+    for ((i = 1; i <= peripheral_disk_count; i++)); do
+      valid_peripheral_disk_size;
+    done
+  else
+    echo "Invalid count! Please enter right number!";
+    sleep 2 && clear && valid_peripheral_disk_count;
+  fi
+}
+
+# Specify many peripheral disk to VM
+valid_peripheral_disk() {
+  read -e -p "Do you want to add many peripheral disk to the VM?: " peripheral_disk_response;
+  if [[ "$peripheral_disk_response" != "Y" && "$peripheral_disk_response" != "y" ]]; then
+    echo "Not using the peripheral disk";
+    sleep 2;
+    echo "$line";
+  else
+    valid_peripheral_disk_count;
+    echo "$line";
+  fi
+}
+
+valid_peripheral_disk;
+
+# # Specify the size of the secondary disk
+# read -e -i "5" -p "Specify size for a new secondary disk image in Gigabyte: " vm_disk2_size;
+# echo "$line"
 
 # Validate attached virtual network and the interface on the hypervisor 
 valid_vir_net() {
@@ -392,6 +430,14 @@ valid_access_login() {
   secret="$(echo "$vm_passwd" | mkpasswd -s --method=SHA-512 --rounds=500000)"
   echo "$line";
   # Prompt to add public key SSH
+  if [[ ! -f ~/.ssh/id_ed25519.pub ]]; then
+    echo "Pubkey not found! Generating new pubkey...";
+    sleep 2;
+    ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -q;
+  else
+    echo "Pubkey found!";
+    sleep 2;
+  fi
   read -e -i "$(cat ~/.ssh/id_ed25519.pub)" -p "Add your pub key to the VM: " vm_pubkey;
   echo "$line";
 }
@@ -407,12 +453,11 @@ valid_processing_vm() {
     --vcpus "$vm_vcpu" \
     --import \
     --disk path="$vm_disk1",format=qcow2 \
-    --disk size="$vm_disk2_size" \
+    "${disk_peripheral[@]}" \
     --cloud-init user-data="$dst_dir"/"$vm_name"-user-data \
     --osinfo detect=on,name="$vm_os" \
     --network bridge="$vm_if_select" \
     --noautoconsole;
-
   sleep 2;
   echo "Result: ";
 }
@@ -467,11 +512,12 @@ packages:
 - curl
 
 runcmd:
+  - chmod 600 /etc/netplan/99-custom-network.yaml
   - netplan apply
   - echo "AllowUsers $vm_user" >> /etc/ssh/sshd_config
   - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - systemctl restart sshd
-  - chmod 600 /etc/netplan/99-custom-network.yaml
+  - systemctl restart NetworkManager
   - cloud-init status --wait
 EOF
   valid_processing_vm;
@@ -594,7 +640,6 @@ else
     --vcpus "$vm_vcpu" \
     --import \
     --disk path="$vm_disk1",format=qcow2 \
-    --disk size="$vm_disk2_size" \
     --osinfo detect=on,name="$vm_os" \
     --network bridge="$vm_if_select" \
     --noautoconsole;
