@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Define several variables
-red="\033[0;31m"
+blue="\033[1;34m"
+green="\033[1;32m"
+red="\033[1;31m"
+yellow="\033[1;33m"
 reset="\033[0m"
 line="-------------------------------------------------------------------------------------"
 src_dir="/var/lib/libvirt/images"
@@ -46,10 +49,12 @@ valid_support() {
   echo "$line"
   echo "Checking virtualization support";
   if ! lscpu | grep "^Virtualization" > /dev/null 2>&1; then
-    echo "Now, your system does't support virtualization. Check your BIOS configuration";
+    echo -e "$red\FAIL:$reset Unseccessfully to start creating VM";
+    echo -e "$blue\INFO:$reset Your system does't support virtualization. You should to check the BIOS config";
     exit 1;
   else
-    echo -e "Your system support $red $(lscpu | grep "^Virtualization") $reset";
+    echo -e "$green\SUCCESS:$reset Successfully to start creating VM";
+    echo -e "$blue\INFO:$reset Your system support $red$(lscpu | grep "^Virtualization")$reset";
     sleep 2;
     clear;
   fi
@@ -64,7 +69,7 @@ valid_package() {
   declare -a packages=("cpu-checker" "ipcalc" "whois" "qemu-system" "libvirt-daemon-system" "virtinst")
   for pack in ${packages[@]}; do
     if [[ -z "$(sudo apt list --installed|grep "$pack")" ]]; then
-      echo -e "Package $red $pack $reset not found";
+      echo -e "$blue\INFO:$reset Package $red$pack$reset not found";
       sudo apt install $pack -y;
       sleep 2;
       clear;
@@ -240,6 +245,17 @@ valid_os() {
 
 valid_os;
 
+# Function to check available disk space in the storage pool
+valid_disk_available(){
+  for pool_storage in $(virsh pool-list --all --name); do 
+    pool_dump=$(virsh pool-dumpxml --pool $pool_storage | awk -F"[<>]" '/path/{print $3}');
+    disk_available=$(df -h $pool_dump | awk 'NR == 2 {print $1": "$4}');
+    disk_available_array+=("$disk_available");
+    echo -e "$yellow\INFO:$reset" ;
+    printf "%s\n" "${disk_available_array[@]}";
+  done | sort -u
+}
+
 # Specify the size of the primary disk
 read -e -i "15" -p "Specify size for the primary disk image in Gigabyte: " vm_disk1_size;
 
@@ -309,7 +325,7 @@ esac
 
 valid_peripheral_disk_size() {
   if [[ "$peripheral_disk_size" =~ ^[0-9]+$ && "$peripheral_disk_size" -gt 0 ]]; then
-    disk_peripheral+=("--disk size=$peripheral_disk_size");
+    disk_peripheral+=(--disk size="$peripheral_disk_size");
   else
     echo "Invalid input size! Please enter right size!";
     sleep 2 && clear && valid_peripheral_disk_size;
@@ -317,9 +333,12 @@ valid_peripheral_disk_size() {
 }
 
 valid_peripheral_disk_count() {
+  echo -n "$yellow\INFO:$reset The peripheral disk will be the block device like:$red sdb, sdc, vdb, vdc, etc.$reset";
+  echo -n "$yellow\TIPS:$reset Fill below question with number:$red 1, 2, 3, or etc.$reset";
   read -e -p "How many peripheral disk do you want to add to the VM?: " peripheral_disk_count;
   if [[ "$peripheral_disk_count" =~ ^[0-9]+$ && "$peripheral_disk_count" -gt 0 ]]; then
     disk_peripheral=()
+    echo -n "$yellow TIPS:$reset Fill below question with number:$red 1, 2, 3, or etc.$reset";
     read -e -p "Specify size for the peripheral disk image in Gigabyte: " peripheral_disk_size;
     # Loop to create the specified number of peripheral disks
     for ((i = 1; i <= peripheral_disk_count; i++)); do
@@ -333,7 +352,7 @@ valid_peripheral_disk_count() {
 
 # Specify many peripheral disk to VM
 valid_peripheral_disk() {
-  read -e -p "Do you want to add many peripheral disk to the VM?: " peripheral_disk_response;
+  read -e -p "Do you want to add many peripheral disk to the VM? (Y/n): " peripheral_disk_response;
   if [[ "$peripheral_disk_response" != "Y" && "$peripheral_disk_response" != "y" ]]; then
     echo "Not using the peripheral disk";
     sleep 2;
@@ -345,10 +364,6 @@ valid_peripheral_disk() {
 }
 
 valid_peripheral_disk;
-
-# # Specify the size of the secondary disk
-# read -e -i "5" -p "Specify size for a new secondary disk image in Gigabyte: " vm_disk2_size;
-# echo "$line"
 
 # Validate attached virtual network and the interface on the hypervisor 
 valid_vir_net() {
