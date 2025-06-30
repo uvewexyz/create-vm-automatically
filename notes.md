@@ -11,6 +11,15 @@ sed -i 's/^#unix_sock_group = "libvirt"/unix_sock_group = "libvirt"/g' /etc/libv
 echo "user1:Str0ngPass!" | chpasswd
 ```
 
+#### Notes
+
+| Legend  | Colour
+---------------------
+| INFO    | Blue    |
+| SUCCESS | Green   |
+| FAIL    | Red     |
+| TIPS    | Yellow  |
+
 #### The process queue in the script:
 ```bash
 - Start of the script
