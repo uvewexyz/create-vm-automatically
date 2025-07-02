@@ -223,17 +223,15 @@ valid_os() {
   os_lists=("ubuntu22.04" "ubuntu20.04" "almalinux9" "alpinelinux3.21" "centos-stream9" "openwrt");
   for os in "${!os_lists[@]}"; do
     num=$((os + 1));
-    echo -e "${num}.)${red}${os_lists[$os]}${reset}";
+    echo -e "${num}.) ${red}${os_lists[$os]}${reset}";
   done
-  echo "${blue}INFO:${reset} Example selection is 1, 2, 3, or etc...";
+  echo -e "${blue}INFO:${reset} Example selection is 1, 2, 3, or etc...";
   read -e -p "Type OS number for your VM OS: " vm_os;
   echo -e "Selecting the number: ${red}${vm_os}${reset}";
   if [[ "${vm_os}" -lt 1 || "${vm_os}" -gt "${#os_lists[@]}" ]]; then
-    echo "${red}FAIL:${reset} Invalid selection! Please select a number between 1 and ${#os_lists[@]}";
-    sleep 2;
-    clear && valid_os;
+    echo -e "${red}FAIL:${reset} Invalid selection! Please select a number between 1 and ${#os_lists[@]}";
+    sleep 2 && valid_os;
   fi
-  echo "${line}";
 }
 
 # Function to check available disk space in the storage pool
@@ -242,7 +240,7 @@ valid_disk_available() {
     pool_dump=$(virsh pool-dumpxml --pool ${pool_storage} | awk -F"[<>]" '/path/{print $3}');
     disk_available=$(df -h ${pool_dump} | awk 'NR == 2 {print $1": "$4}');
     disk_available_array+=("${disk_available}");
-    echo -e "${blue}INFO:${reset}" ;
+    echo -e "${blue}INFO:${reset} Below is the information about available space";
     printf "%s\n" "${disk_available_array[@]}";
   done | sort -u
 }
@@ -289,7 +287,7 @@ valid_os_disk() {
   esac
 
   # Show the primary disk image path
-  echo "Primary disk image path: ${vm_disk1}";
+  echo -e "${green}SUCCESS:${reset} Primary disk image path: ${vm_disk1}";
   echo "${line}"
 
   case "${vm_os}" in
@@ -326,7 +324,7 @@ valid_peripheral_disk_size() {
     disk_peripheral+=(--disk size="${peripheral_disk_size}");
   else
     echo "${red}FAIL:${reset} Invalid input size! Please enter right size!";
-    sleep 2 && clear && valid_peripheral_disk_size;
+    sleep 2 && valid_peripheral_disk_size;
   fi
 }
 
@@ -353,7 +351,7 @@ valid_peripheral_disk() {
   valid_disk_available;
   read -e -p "Do you want to add many peripheral disk to the VM? (Y/n): " peripheral_disk_response;
   if [[ "${peripheral_disk_response}" != "Y" && "${peripheral_disk_response}" != "y" ]]; then
-    echo "${blue}INFO:${reset} Not using the peripheral disk";
+    echo -e "${blue}INFO:${reset} Not using the peripheral disk";
     sleep 2;
     echo "${line}";
   else
@@ -390,7 +388,7 @@ valid_vir_net() {
   done
   # Prompt to select a virtual network
   echo "${line}"
-  echo "${yellow}TIPS:${reset} Fill below question with number: ${red}1, 2, 3, or etc${reset}";
+  echo -e "${yellow}TIPS:${reset} Fill below question with number: ${red}1, 2, 3, or etc${reset}";
   read -e -p "Select the number of the virtual network to attach to the VM: " net_num;
   echo "${line}"
   sleep 2;
@@ -445,7 +443,7 @@ valid_access_login() {
     sleep 2;
     ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -q;
   else
-    echo "${blue}INFO:${reset} Pubkey found!";
+    echo -e "${blue}INFO:${reset} Pubkey found!";
     sleep 2;
   fi
   read -e -i "$(cat ~/.ssh/id_ed25519.pub)" -p "Add your pub key to the VM (Autofill): " vm_pubkey;
@@ -657,7 +655,6 @@ fi
 
 # Validate if the VM is successfully created or not
 valid_final_vm() {
-  echo -e "${blue}INFO:${reset}";
   if virsh list --all --name | grep -qwF -- "${vm_name}"; then
     echo -e "${blue}INFO:${reset} Successfully created VM with name ${red}${vm_name}${reset}";
     virsh list --all | grep -i "${vm_name}";
