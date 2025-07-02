@@ -168,7 +168,7 @@ valid_name() {
   echo "${line}"
   read -e -i "vm$(date +%d_%m_%y)" -p "What is the VM name?: " vm_name;
   if virsh list --all --name | grep -qwF -- "${vm_name}"; then
-    echo "${red}FAIL:${reset} This name is already use, please input again";
+    echo -e "${red}FAIL:${reset} This name is already use, please input again";
     sleep 3 && clear && valid_name;
   else
     echo -e "${blue}INFO:${reset} Saving a VM with the name ${red}${vm_name}${reset}";
@@ -260,7 +260,7 @@ valid_os_disk() {
   echo "${line}";
   valid_disk_available;
   echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
-  read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB) " vm_disk1_size;
+  read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB): " vm_disk1_size;
 
   case "${vm_os}" in
     1)
