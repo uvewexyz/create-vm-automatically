@@ -469,13 +469,15 @@ valid_processing_vm() {
   sleep 2;
 }
 
-# Load the user-data file based on the selected OS
-if [[ "${vm_os}" == "ubuntu22.04" || "${vm_os}" == "ubuntu20.04" ]]; then
-  valid_vir_net;
-  valid_ip;
-  valid_access_login;
-  # Load config to Ubuntu user-data file
-  cat << EOF > "${dst_dir}"/"${vm_name}"-user-data
+valid_cloud_init() {
+  # Load the user-data file based on the selected OS
+  # This is Ubuntu 22.04 and Ubuntu 20.04 user-data file
+  if [[ "${vm_os}" == "ubuntu22.04" || "${vm_os}" == "ubuntu20.04" ]]; then
+    valid_vir_net;
+    valid_ip;
+    valid_access_login;
+    # Load config to Ubuntu user-data file
+    cat << EOF > "${dst_dir}"/"${vm_name}"-user-data
 #cloud-config
 
 # Set hostname
@@ -527,13 +529,13 @@ runcmd:
   - systemctl restart NetworkManager
   - cloud-init status --wait
 EOF
-  valid_processing_vm;
-elif [[ "${vm_os}" == "almalinux9" || "${vm_os}" == "centos-stream9" ]]; then
-  valid_vir_net;
-  valid_ip;
-  valid_access_login;
-  # Load config to Alma/Centos user-data file
-  cat << EOF > "${dst_dir}"/"${vm_name}"-user-data
+    valid_processing_vm;
+  elif [[ "${vm_os}" == "almalinux9" || "${vm_os}" == "centos-stream9" ]]; then
+    valid_vir_net;
+    valid_ip;
+    valid_access_login;
+    # This is Alma Linux 9 and Centos Stream 9 user-data file
+    cat << EOF > "${dst_dir}"/"${vm_name}"-user-data
 #cloud-config
 
 # Set hostname
@@ -576,13 +578,13 @@ runcmd:
   - systemctl enable nginx && systemctl start nginx
   - cloud-init status --wait
 EOF
-  valid_processing_vm;
-elif [[ "${vm_os}" == "alpinelinux3.21" ]]; then
-  valid_vir_net;
-  valid_ip;
-  valid_access_login;
-  # Load config to Alpine user-data file
-  cat << EOF > "${dst_dir}"/"${vm_name}"-user-data
+    valid_processing_vm;
+  elif [[ "${vm_os}" == "alpinelinux3.21" ]]; then
+    valid_vir_net;
+    valid_ip;
+    valid_access_login;
+    # This is Alpine Linux 3.21 user-data file
+    cat << EOF > "${dst_dir}"/"${vm_name}"-user-data
 #cloud-config
 
 # Set hostname
@@ -628,30 +630,34 @@ runcmd:
   - rc-service sshd restart
   - rc-service networking restart
 EOF
-  valid_processing_vm;
-else
-  echo -e "${blue}INFO:${reset} OpenWRT isn't load your input ip address.
-  This OS will be use selected network interface.
-  You must manually configure the ip address after the VM is created.";
-  echo "${line}"
-  valid_vir_net;
-  echo -e "Next to the process creating VM"
-  sleep 2;
-  echo "${line}"
-  echo -e "Create VM name ${red}${vm_name}${reset}";
-  echo -e "VM OS: ${red}${vm_os}${reset}";
-  echo "${line}"
-  sleep 2;
-  virt-install -q -n "${vm_name}" \
-    --memory "${vm_mem}" \
-    --vcpus "${vm_cpu}" \
-    --import \
-    --disk path="${vm_disk1}",format=qcow2 \
-    --osinfo detect=on,name="${vm_os}" \
-    --network bridge="${vm_if_select}" \
-    --noautoconsole;
-  sleep 2;
-fi
+    valid_processing_vm;
+  else
+    # This is OpenWRT section
+    echo -e "${blue}INFO:${reset} OpenWRT isn't load your input ip address.
+    This OS will be use selected network interface.
+    You must manually configure the ip address after the VM is created.";
+    echo "${line}"
+    valid_vir_net;
+    echo -e "Next to the process creating VM"
+    sleep 2;
+    echo "${line}"
+    echo -e "Create VM name ${red}${vm_name}${reset}";
+    echo -e "VM OS: ${red}${vm_os}${reset}";
+    echo "${line}"
+    sleep 2;
+    virt-install -q -n "${vm_name}" \
+      --memory "${vm_mem}" \
+      --vcpus "${vm_cpu}" \
+      --import \
+      --disk path="${vm_disk1}",format=qcow2 \
+      --osinfo detect=on,name="${vm_os}" \
+      --network bridge="${vm_if_select}" \
+      --noautoconsole;
+    sleep 2;
+  fi
+}
+
+valid_cloud_init;
 
 # Validate if the VM is successfully created or not
 valid_final_vm() {
