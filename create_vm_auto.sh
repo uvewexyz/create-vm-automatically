@@ -26,7 +26,7 @@ echo -e "
 #${blue}    \ \ \_/ \ \_\ \__\ \ \ \ \ \ \ \ \ \ \_\ \ \ \ \__   ${reset}#
 #${blue}     \ \____/ /\______\ \_\ \_\ \ \_\ \ \_____\/\_____\  ${reset}#
 #${blue}      \_____/ \/_____/ \/_/\/_/  \/_/  \/_____/\/_____/  ${reset}#
-#${blue}  Virtui v3 by uvewexyz                                  ${reset}#
+#${yellow}  Virtui v3 by uvewexyz                                  ${reset}#
 ###########################################################
 "
 
@@ -46,7 +46,7 @@ valid_start;
 # Check and validate this device support virtualization
 valid_support() {
   echo "${line}"
-  echo "Checking virtualization support";
+  echo "Checking if your system support virtualization";
   if ! lscpu | grep "^Virtualization" > /dev/null 2>&1; then
     echo -e "${red}FAIL:${reset} Unseccessfully to start creating VM";
     echo -e "${blue}INFO:${reset} Your system does't support virtualization. You should check the BIOS configuration";
@@ -64,7 +64,7 @@ valid_support;
 # Check and validate libvirt dependencies package
 valid_package() {
   echo "${line}"
-  echo "Checking libvirt dependencies package";
+  echo "Checking if the libvirt package dependencies have installed";
   declare -a packages=("cpu-checker" "ipcalc" "whois" "qemu-system" "libvirt-daemon-system" "virtinst")
   for pack in ${packages[@]}; do
     if [[ -z "$(sudo apt list --installed|grep "${pack}")" ]]; then
@@ -73,8 +73,7 @@ valid_package() {
       clear;
     else
       echo -e "${blue}INFO:${reset} Package ${red}${pack}${reset} already exist";
-      sleep 2;
-      clear;
+      sleep 2 && clear;
     fi
   done
 }
@@ -84,7 +83,7 @@ valid_package;
 # Check and validate this device supporting nested virtualisation
 valid_nested() {
   echo "${line}"
-  echo "Checking nested virtualization";
+  echo "Checking if your system supports the nested virtualization";
   nested_module="$(lsmod | grep -E "^kvm_amd|^kvm_intel" | awk '{print $1}')"
   nested_value="$(cat /sys/module/${nested_module}/parameters/nested 2>/dev/null)"
   if [[ "${nested_value}" != "1" ]]; then
@@ -142,7 +141,7 @@ valid_user;
 # Validate workdir directory
 valid_workdir() {
   echo "${line}"
-  echo "Checking the workdir directory";
+  echo "Checking if your system has the workdir directory";
   if [[ ! -d "${dst_dir}" ]]; then
     sudo mkdir "${dst_dir}";
     if [[ ! -d "${dst_dir}" ]]; then
@@ -167,13 +166,12 @@ valid_workdir;
 valid_name() {
   # Prompt to specify th VM name
   echo "${line}"
-  read -e -i "vm$(date +%d_%m_%y)" -p "Create the VM name: " vm_name;
+  read -e -i "vm$(date +%d_%m_%y)" -p "What is the VM name?: " vm_name;
   if virsh list --all --name | grep -qwF -- "${vm_name}"; then
     echo "${red}FAIL:${reset} This name is already use, please input again";
-    sleep 3;
-    clear && valid_name;
+    sleep 3 && clear && valid_name;
   else
-    echo -e "${blue}INFO:${reset} Keep vm name is ${red}${vm_name}${reset}";
+    echo -e "${blue}INFO:${reset} Saving a VM with the name ${red}${vm_name}${reset}";
     echo "${line}"
   fi
 }
@@ -185,14 +183,14 @@ valid_mem() {
   # Prompt to specify thre VM memory size
   vm_mem_max="$(grep -i "MemAvailable" /proc/meminfo | awk '{print $2/1048}' | cut -d. -f1)"
   echo -e "${blue}INFO:${reset} Total size memory available is ${red}${vm_mem_max}${reset} MiB";
-  read -e -p "Specify size memory to allocate for the VM, in MiB: " vm_mem;
+  read -e -p "How much is the memory size you want allocated for your VM? (in MiB): " vm_mem;
   if [[ "${vm_mem}" -ge "${vm_mem_max}" ]]; then
     echo -e "${red}FAIL:${reset} Invalid memory size! Input below ${red}${vm_mem_max}${reset} MiB";
     echo "${line}";
     sleep 3;
     clear && valid_mem;
   else
-    echo -e "${blue}INFO:${reset} Keep vm memory size is ${red}${vm_mem}${reset} MiB";
+    echo -e "${blue}INFO:${reset} Allocate memory with ${red}${vm_mem}${reset} MiB";
     echo "${line}";
   fi
 }
@@ -203,14 +201,14 @@ valid_mem;
 valid_cpu() {
   # Prompt to specify the VM vCPU size
   echo -e "${blue}INFO:${reset} Total size cpu available is ${red}$(nproc)${reset} core";
-  read -e -i "1" -p "Size of cpu for the VM: " vm_cpu;
+  read -e -i "1" -p "How much is the cpu core you want allocated for your VM?: " vm_cpu;
   if [[ "${vm_cpu}" -lt 1  || "${vm_cpu}" -ge "$(nproc)" ]]; then
     echo -e "${red}FAIL:${reset} Invalid CPU size! Enter value between ${red}1${reset} core - ${red}$(nproc)${reset} core";
     echo "${line}";
     sleep 3;
     clear && valid_cpu;
   else
-    echo -e "${blue}INFO:${reset} Keep vm CPU size is ${red}${vm_cpu}${reset} core";
+    echo -e "${blue}INFO:${reset} Allocate cpu with ${red}${vm_cpu}${reset} core";
     echo "${line}";
   fi
 }
@@ -226,8 +224,9 @@ valid_os() {
     echo -e "${num}.) ${red}${os_lists[$os]}${reset}";
   done
   echo -e "${blue}INFO:${reset} Example selection is 1, 2, 3, or etc...";
-  read -e -p "Type OS number for your VM OS: " vm_os;
-  echo -e "Selecting the number: ${red}${vm_os}${reset}";
+  read -e -p "Selecting an OS for your VM (select the number): " vm_os;
+  # The line below is used to debugging
+  # echo -e "Selecting the number: ${red}${vm_os}${reset}";
   if [[ "${vm_os}" -lt 1 || "${vm_os}" -gt "${#os_lists[@]}" ]]; then
     echo -e "${red}FAIL:${reset} Invalid selection! Please select a number between 1 and ${#os_lists[@]}";
     sleep 2 && valid_os;
@@ -258,8 +257,10 @@ valid_copy_image() {
 # Specify the size of the primary disk
 valid_os_disk() {
   valid_os;
+  echo "${line}";
   valid_disk_available;
-  read -e -i "15" -p "Specify size for the primary disk image in Gigabyte: " vm_disk1_size;
+  echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
+  read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB) " vm_disk1_size;
 
   case "${vm_os}" in
     1)
@@ -287,7 +288,7 @@ valid_os_disk() {
   esac
 
   # Show the primary disk image path
-  echo -e "${green}SUCCESS:${reset} Primary disk image path: ${vm_disk1}";
+  echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
   echo "${line}"
 
   case "${vm_os}" in
@@ -323,25 +324,26 @@ valid_peripheral_disk_size() {
   if [[ "${peripheral_disk_size}" =~ ^[0-9]+$ && "${peripheral_disk_size}" -gt 0 ]]; then
     disk_peripheral+=(--disk size="${peripheral_disk_size}");
   else
-    echo "${red}FAIL:${reset} Invalid input size! Please enter right size!";
+    echo "${red}FAIL:${reset} Invalid input size! Please input right size!";
     sleep 2 && valid_peripheral_disk_size;
   fi
 }
 
 valid_peripheral_disk_count() {
-  echo -e "${blue}INFO:${reset} The peripheral disk will be the block device like:${red}sdb, sdc, vdb, vdc, etc.${reset}";
-  echo -e "${yellow}TIPS:${reset} Fill below question with number: ${red}1, 2, 3, or etc${reset}";
+  echo -e "${blue}INFO:${reset} The peripheral disk will be the block device like: ${red}sdb, sdc, vdb, vdc, etc.${reset}";
+  echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
   read -e -p "How many peripheral disk do you want to add to the VM?: " peripheral_disk_count;
+  echo "${line}";
   if [[ "${peripheral_disk_count}" =~ ^[0-9]+$ && "${peripheral_disk_count}" -gt 0 ]]; then
     disk_peripheral=()
-    echo -e "${yellow}TIPS:${reset} Fill below question with number: ${red}1, 2, 3, or etc.${reset}";
-    read -e -p "Specify size for the peripheral disk image in Gigabyte: " peripheral_disk_size;
+    echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc.${reset}";
+    read -e -p "How much is the disk size you want allocated for your peripheral disk? (in GiB): " peripheral_disk_size;
     # Loop to create the specified number of peripheral disks
     for ((i = 1; i <= "${peripheral_disk_count}"; i++)); do
       valid_peripheral_disk_size;
     done
   else
-    echo -e "${red}FAIL:${reset} Invalid count! Please enter right number!";
+    echo -e "${red}FAIL:${reset} Invalid count! Please input right number!";
     sleep 2 && clear && valid_peripheral_disk_count;
   fi
 }
@@ -355,6 +357,7 @@ valid_peripheral_disk() {
     sleep 2;
     echo "${line}";
   else
+    echo "${line}";
     valid_peripheral_disk_count;
     echo "${line}";
   fi
@@ -376,7 +379,6 @@ valid_vir_net() {
   # Check if user haven't any virtual networks
   if [[ "${#net_name[@]}" -eq 0 ]]; then
     echo -e "${blue}INFO:${reset} Virtual networks not found. Please create a virtual network first.";
-    sleep 2;
     exit 1;
   fi
   # List available virtual networks
@@ -387,8 +389,7 @@ valid_vir_net() {
     echo -e "${num}.) Virtual Network: ${red}${net_name[${vnet}]}${reset} | Interface: ${red}${net_if[${vnet}]}${reset}";
   done
   # Prompt to select a virtual network
-  echo "${line}"
-  echo -e "${yellow}TIPS:${reset} Fill below question with number: ${red}1, 2, 3, or etc${reset}";
+  echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
   read -e -p "Select the number of the virtual network to attach to the VM: " net_num;
   echo "${line}"
   sleep 2;
@@ -404,7 +405,6 @@ valid_vir_net() {
     echo -e "Your ip address start from ${red}$ip_start${reset}";
     echo -e "Your ip address ended is ${red}$ip_end${reset}";
     echo -e "${yellow}TIPS:${reset} Fill above question with ip address, example ${red}$(ip addr show ${vm_if_select} | awk 'NR == 3 {print $2}' | sed -E 's/([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+\/24/\1.10/g')${reset}";
-    echo "${line}"
   else
     echo -e "${red}FAIL:${reset} Invalid selection. Please select a valid number from the list.";
     sleep 3 && clear && valid_vir_net;
