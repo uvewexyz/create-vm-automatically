@@ -257,8 +257,8 @@ valid_copy_image() {
 
 # Specify the size of the primary disk
 valid_os_disk() {
-  valid_disk_available;
   valid_os;
+  valid_disk_available;
   read -e -i "15" -p "Specify size for the primary disk image in Gigabyte: " vm_disk1_size;
 
   case "${vm_os}" in
