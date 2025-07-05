@@ -13,12 +13,12 @@ echo "user1:Str0ngPass!" | chpasswd
 
 #### Notes
 
-| Legend  | Colour
----------------------
-| INFO    | Blue    |
-| SUCCESS | Green   |
-| FAIL    | Red     |
-| TIPS    | Yellow  |
+| Legend  |                 Colour               |
+| :-----: |                :------:              |
+| INFO    | $\textsf{\color{lightblue}Blue}$     |
+| SUCCESS | $\textsf{\color{lightgreen}Green}$   |
+| FAIL    | $\textsf{\color{red}Red}$            |
+| TIPS    | $\textsf{\color{yellow}Yellow}$      |
 
 #### The process queue in the script:
 ```bash
