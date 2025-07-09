@@ -310,13 +310,13 @@ valid_primary_disk() {
       os_get=$(echo "${osinfo}" | grep -i "${filter}");
       if [[ -n "${os_get}" && "$(echo ${os_get} | wc -l)" != 1 ]]; then
         os_get=$(echo "${osinfo}" | grep -i "${filter}" | grep -i "${filter}");
-        os_final=+(echo -e "${os_get}");
+        os_final=+( `echo -e "${os_get}"` );
         echo -e "${os_final[@]}";
         break
       fi
     done
   else
-    os_final=+(echo -e "${osinfo}");
+    os_final=+( `echo -e "${osinfo}"` );
     echo -e "${os_final[@]}";
   fi
 }
