@@ -26,7 +26,7 @@ echo -e "
 #${blue}    \ \ \_/ \ \_\ \__\ \ \ \ \ \ \ \ \ \ \_\ \ \ \ \__   ${reset}#
 #${blue}     \ \____/ /\______\ \_\ \_\ \ \_\ \ \_____\/\_____\  ${reset}#
 #${blue}      \_____/ \/_____/ \/_/\/_/  \/_/  \/_____/\/_____/  ${reset}#
-#${yellow}  Virtui v3 by uvewexyz                                  ${reset}#
+#${yellow}  Virtui v3 by uvewexyz                                ${reset}#
 ###########################################################
 "
 
@@ -215,23 +215,40 @@ valid_cpu() {
 
 valid_cpu;
 
-# Selecting the OS to VM
-valid_os() {
-  # Prompt to select the OS for the VM
-  os_lists=("ubuntu22.04" "ubuntu20.04" "almalinux9" "alpinelinux3.21" "centos-stream9" "openwrt");
-  for os in "${!os_lists[@]}"; do
-    num=$((os + 1));
-    echo -e "${num}.) ${red}${os_lists[$os]}${reset}";
+# Selecting the OS image 
+valid_os_image() {
+  # Listing available os images
+  mapfile -t os_images < <(ls "${src_dir}");
+  for os_image in "${!os_images[@]}"; do
+    list=$(( os_image + 1 ));
+    echo -e "${list}.) ${red}${os_images[os_image]}${reset}";
   done
   echo -e "${blue}INFO:${reset} Example selection is 1, 2, 3, or etc...";
-  read -e -p "Selecting an OS for your VM (select the number): " vm_os;
-  # The line below is used to debugging
-  # echo -e "Selecting the number: ${red}${vm_os}${reset}";
-  if [[ "${vm_os}" -lt 1 || "${vm_os}" -gt "${#os_lists[@]}" ]]; then
-    echo -e "${red}FAIL:${reset} Invalid selection! Please select a number between 1 and ${#os_lists[@]}";
-    sleep 2 && valid_os;
+  read -e -p "Selecting an OS for your VM (select the number): " vm_os;  
+  if [[ "${vm_os}" -lt 1 && "${vm_os}" -gt "${#os_images[@]}" ]]; then
+    echo -e "${red}FAIL:${reset} Invalid selection! Please select a number between 1 - ${#os_images[@]}";
+    sleep 2 && valid_os_image;
   fi
+  echo "${line}";
 }
+
+# # Selecting the OS to VM
+# valid_os() {
+#   # Prompt to select the OS for the VM
+#   os_lists=("ubuntu22.04" "ubuntu20.04" "almalinux9" "alpinelinux3.21" "centos-stream9" "openwrt");
+#   for os in "${!os_lists[@]}"; do
+#     num=$((os + 1));
+#     echo -e "${num}.) ${red}${os_lists[$os]}${reset}";
+#   done
+#   echo -e "${blue}INFO:${reset} Example selection is 1, 2, 3, or etc...";
+#   read -e -p "Selecting an OS for your VM (select the number): " vm_os;
+#   # The line below is used to debugging
+#   # echo -e "Selecting the number: ${red}${vm_os}${reset}";
+#   if [[ "${vm_os}" -lt 1 && "${vm_os}" -gt "${#os_lists[@]}" ]]; then
+#     echo -e "${red}FAIL:${reset} Invalid selection! Please select a number between 1 and ${#os_lists[@]}";
+#     sleep 2 && valid_os;
+#   fi
+# }
 
 # Function to check available disk space in the storage pool
 valid_disk_available() {
@@ -245,7 +262,7 @@ valid_disk_available() {
 }
 
 # Function to create, specify size, and formatting new disk images
-valid_copy_image() {
+valid_clone_image() {
   src_img=$1
   dst_img=$2
   dst_path="${dst_dir}/${dst_img}"
@@ -255,70 +272,128 @@ valid_copy_image() {
 }
 
 # Specify the size of the primary disk
-valid_os_disk() {
-  valid_os;
-  echo "${line}";
+valid_primary_disk() {
+  valid_os_image;
   valid_disk_available;
   echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
   read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB): " vm_disk1_size;
-
-  case "${vm_os}" in
-    1)
-      vm_disk1=$(valid_copy_image "$ubuntu22" "ubuntu22-$timestamp.img")
-      ;;
-    2)
-      vm_disk1=$(valid_copy_image "$ubuntu20" "ubuntu20-$timestamp.img")
-      ;;
-    3)
-      vm_disk1=$(valid_copy_image "$almalinux9" "almalinux9-$timestamp.img")
-      ;;
-    4)
-      vm_disk1=$(valid_copy_image "$alpinelinux21" "alpinelinux21-$timestamp.img")
-      ;;
-    5)
-      vm_disk1=$(valid_copy_image "$centosstream9" "centosstream9-$timestamp.img")
-      ;;
-    6)
-      vm_disk1=$(valid_copy_image "$openwrt" "openwrt-$timestamp.img")
-      ;;
-    *)
-      echo "${red}FAIL:${reset} Option not found!. Please select between 1, 2, 3, 4, 5, or 6!!!"
-      exit 1
-      ;;
-  esac
-
-  # Show the primary disk image path
-  echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
-  echo "${line}"
-
-  case "${vm_os}" in
-    1)
-      vm_os="ubuntu22.04"
-      ;;
-    2)
-      vm_os="ubuntu20.04"
-      ;;
-    3)
-      vm_os="almalinux9"
-      ;;
-    4)
-      vm_os="alpinelinux3.21"
-      ;;
-    5)
-      vm_os="centos-stream9"
-      ;;
-    6)
-      vm_os="unknown"
-      ;;
-    *)
-      echo "${red}FAIL:${reset} Option not found!. Please select between 1, 2, 3, 4, 5, or 6!!!"
-      sleep 3;
-      clear && valid_os;
-      ;;
-  esac
+  # Validate the disk size input
+  if [[ ! "${vm_disk1_size}" =~ ^[0-9]+$ && "${vm_disk1_size}" -lt 0 ]]; then
+    echo -e "${red}FAIL:${reset} Invalid disk size! Please input a valid size number greater than 0";
+    sleep 2 && clear && valid_primary_disk;
+  else
+    # Create clone image from source image
+    echo -e "${blue}INFO:${reset} Proceeding to clone image"
+    os=$(( "${vm_os}" - 1 ));
+    vm_disk1=$(valid_clone_image "${os_images[${os}]}" "${os_images[${os}]}-$timestamp.img");
+    # Validate if the clone image process successfully
+    if [[ -e "${dst_path}" ]]; then
+      # Show the primary disk image path
+      echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
+      echo "${line}"
+    else
+      echo -e "${green}FAIL:${reset} There are something problem, restart create primary disk";
+      sleep 2 && clear && valid_primary_disk;
+    fi
+  fi
+  # Validate OS variant will be used
+  patterns=();
+  patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $1}'` );
+  patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $2}'` );
+  patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $4}'` );
+  patterns+=( `echo "${vm_disk1}" | grep -oP '[0-9]+\.[0-9]+'` );
+  # Begin to match OS with available pattern
+  osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
+  os_final=();
+  if [[ "$(echo ${osinfo} | wc -l)" != 1 ]]; then
+    for filter in "${patterns}"; do
+      os_get=$(echo "${osinfo}" | grep -i "${filter}");
+      if [[ -n "${os_get}" && "$(echo ${os_get} | wc -l)" != 1 ]]; then
+        os_get=$(echo "${osinfo}" | grep -i "${filter}" | grep -i "${filter}");
+        os_final=+(echo -e "${os_get}");
+        echo -e "${os_final[@]}";
+        break
+      fi
+    done
+  else
+    os_final=+(echo -e "${osinfo}");
+    echo -e "${os_final[@]}";
+  fi
 }
 
-valid_os_disk;
+valid_primary_disk;
+
+# # Specify the size of the primary disk
+# valid_os_disk() {
+#   valid_os;
+#   echo "${line}";
+#   valid_disk_available;
+#   echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
+#   read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB): " vm_disk1_size;
+
+#   # Validate the disk size input
+#   if [[ ! "${vm_disk1_size}" =~ ^[0-9]+$ && "${vm_disk1_size}" -lt 0 ]]; then
+#     echo -e "${red}FAIL:${reset} Invalid disk size! Please input a valid size number greater than 0";
+#     sleep 2 && clear && valid_os_disk;
+#   fi
+
+#   case "${vm_os}" in
+#     1)
+#       vm_disk1=$(valid_copy_image "$ubuntu22" "ubuntu22-$timestamp.img")
+#       ;;
+#     2)
+#       vm_disk1=$(valid_copy_image "$ubuntu20" "ubuntu20-$timestamp.img")
+#       ;;
+#     3)
+#       vm_disk1=$(valid_copy_image "$almalinux9" "almalinux9-$timestamp.img")
+#       ;;
+#     4)
+#       vm_disk1=$(valid_copy_image "$alpinelinux21" "alpinelinux21-$timestamp.img")
+#       ;;
+#     5)
+#       vm_disk1=$(valid_copy_image "$centosstream9" "centosstream9-$timestamp.img")
+#       ;;
+#     6)
+#       vm_disk1=$(valid_copy_image "$openwrt" "openwrt-$timestamp.img")
+#       ;;
+#     *)
+#       echo "${red}FAIL:${reset} Option not found!. Please select between 1, 2, 3, 4, 5, or 6!!!"
+#       exit 1
+#       ;;
+#   esac
+
+#   # Show the primary disk image path
+#   echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
+#   echo "${line}"
+
+#   case "${vm_os}" in
+#     1)
+#       vm_os="ubuntu22.04"
+#       ;;
+#     2)
+#       vm_os="ubuntu20.04"
+#       ;;
+#     3)
+#       vm_os="almalinux9"
+#       ;;
+#     4)
+#       vm_os="alpinelinux3.21"
+#       ;;
+#     5)
+#       vm_os="centos-stream9"
+#       ;;
+#     6)
+#       vm_os="unknown"
+#       ;;
+#     *)
+#       echo "${red}FAIL:${reset} Option not found!. Please select between 1, 2, 3, 4, 5, or 6!!!"
+#       sleep 3;
+#       clear && valid_os;
+#       ;;
+#   esac
+# }
+
+# valid_os_disk;
 
 valid_peripheral_disk_size() {
   if [[ "${peripheral_disk_size}" =~ ^[0-9]+$ && "${peripheral_disk_size}" -gt 0 ]]; then
