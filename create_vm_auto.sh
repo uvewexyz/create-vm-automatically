@@ -306,7 +306,7 @@ valid_primary_disk() {
   patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $4}'` );
   patterns+=( `echo "${vm_disk1}" | grep -oP '[0-9]+\.[0-9]+'` );
   # Begin to match OS with available pattern
-  osinfo=$(osinfo-query os --fields=short-id,name,codename | awk '{print $1}' | grep -i "${patterns[0]}");
+  osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   os_final=();
   for pattern in "${patterns[@]}"; do
     if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l) == 1 " ]]; then
