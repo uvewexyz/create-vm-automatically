@@ -289,11 +289,11 @@ valid_primary_disk() {
     # Validate if the clone image process successfully
     if [[ -e "${dst_path}" ]]; then
       # Show the primary disk image path
+      echo -e "${red}FAIL:${reset} There are something problem, restart create primary disk";
+      sleep 2 && clear && valid_primary_disk;
+    else
       echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
       echo "${line}"
-    else
-      echo -e "${green}FAIL:${reset} There are something problem, restart create primary disk";
-      sleep 2 && clear && valid_primary_disk;
     fi
   fi
   # Validate OS variant will be used
