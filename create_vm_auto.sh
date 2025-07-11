@@ -53,7 +53,10 @@ valid_support() {
     exit 1;
   else
     echo -e "${green}SUCCESS:${reset} Successfully to start creating VM";
-    echo -e "${blue}INFO:${reset} Your system support ${red}$(lscpu | grep "^Virtualization")${reset}";
+    echo -e "
+      ${blue}INFO:${reset} Your system support: 
+      ${red}$(lscpu | grep "^Virtualization")${reset}
+    ";
     sleep 2;
     clear;
   fi
