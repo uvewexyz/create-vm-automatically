@@ -281,7 +281,7 @@ valid_primary_disk() {
   echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
   read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB): " vm_disk1_size;
   # Validate the disk size input
-  if [[ ! "${vm_disk1_size}" =~ ^[0-9]+$ && "${vm_disk1_size}" -lt 0 ]]; then
+  if [[ ! "${vm_disk1_size}" =~ ^[0-9]+$ || "${vm_disk1_size}" -lt 0 ]]; then
     echo -e "${red}FAIL:${reset} Invalid disk size! Please input a valid size number greater than 0";
     sleep 2 && clear && valid_primary_disk;
   else
@@ -296,15 +296,16 @@ valid_primary_disk() {
       sleep 2 && clear && valid_primary_disk;
     else
       echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
-      echo "${line}"
+      echo "${line}";
     fi
   fi
   # Validate OS variant will be used
+  vm_disk1_basename=$(basename "${vm_disk1}");
   patterns=();
-  patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $1}'` );
-  patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $2}'` );
-  patterns+=( `echo "${vm_disk1}" | awk -F'-' '{print $4}'` );
-  patterns+=( `echo "${vm_disk1}" | grep -oP '[0-9]+\.[0-9]+'` );
+  patterns+=( `echo "${vm_disk1_basename}" | awk -F'-' '{print $1}'` );
+  patterns+=( `echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'` );
+  patterns+=( `echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'` );
+  patterns+=( `echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'` );
   # Begin to match OS with available pattern
   osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   os_final=();
