@@ -314,14 +314,14 @@ valid_primary_disk() {
     else
       os_final+=( `echo "${osinfo}" | grep -i "${pattern}"` );
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
-      break;
       if [[ "${#os_final[@]}" != 1 ]]; then
         unset os_final;
         os_final+=( `echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"` );
-        break;
-        if [[ -n "$(echo ${os_final[@]})" ]]; then
+        if [[ -n "$(echo ${os_final[@]})" && "${#os_final[@]}" == 1 ]]; then
           echo -e "${bliue}INFO:${reset} ${red}${os_final[@]}${reset}";
           break;
+        else
+          echo -e "Ngentottt";
         fi
       fi
     fi
