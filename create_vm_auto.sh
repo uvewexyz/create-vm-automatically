@@ -310,7 +310,7 @@ valid_primary_disk() {
   osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   os_final=();
   for pattern in "${patterns[@]}"; do
-    if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l) == 1 " ]]; then
+    if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l)" == 1 ]]; then
       os_final+=( `echo "${osinfo}"` );
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
       break;
