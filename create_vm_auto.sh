@@ -313,14 +313,18 @@ valid_primary_disk() {
     if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l) == 1 " ]]; then
       os_final+=( `echo "${osinfo}"` );
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+      break;
     else
       os_final+=( `echo "${osinfo}" | grep -i "${pattern}"` );
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+      break;
       if [[ "${#os_final[@]}" != 1 ]]; then
         unset os_final;
         os_final+=( `echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"` );
+        break;
         if [[ -n "$(echo ${os_final[@]})" ]]; then
           echo -e "${bliue}INFO:${reset} ${red}${os_final[@]}${reset}";
+          break;
         fi
       fi
     fi
