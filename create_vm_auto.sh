@@ -307,23 +307,31 @@ valid_primary_disk() {
   osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   os_final=();
   for pattern in "${patterns[@]}"; do
-    if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l)" == 1 ]]; then
-      os_final+=( `echo "${osinfo}"` );
-      echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
-      break;
-    else
+    if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l)" != 1 ]]; then
       os_final+=( `echo "${osinfo}" | grep -i "${pattern}"` );
-      echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
       if [[ "${#os_final[@]}" != 1 ]]; then
         unset os_final;
         os_final+=( `echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"` );
-        if [[ -n "$(echo ${os_final[@]})" && "${#os_final[@]}" == 1 ]]; then
-          echo -e "${bliue}INFO:${reset} ${red}${os_final[@]}${reset}";
-          break;
-        else
-          echo -e "Ngentottt";
-        fi
+        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        break;
+      else
+        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        break;
       fi
+    elif [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l)" == 1 ]]; then
+      os_final+=(`echo "${osinfo}"`);
+      if [[ "${#os_final[@]}" != 1 ]]; then
+        unset os_final;
+        os_final+=( `echo "${osinfo}" | grep -i "${pattern}"` );
+        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        break;
+      else
+        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        break;
+      fi
+    else
+      os_final+=(unknown);
+      echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
     fi
   done
 }
