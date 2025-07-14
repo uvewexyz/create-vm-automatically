@@ -306,29 +306,30 @@ valid_primary_disk() {
   # osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   # os_final=("${osinfo}");
   # List and split the OS name
-  osinfo=()
-  osfinal=();
-  while IFS= read -r oslist; do
-    osinfo+=("${oslist}");
-  done < <(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
+  osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}'));
+  # osfinal=();
+  # while IFS= read -r oslist; do
+  #   osfinal+=("${oslist}");
+  # done < <(echo "${osinfo}");
   # Begin to match OS with available pattern
   for pattern in "${patterns[@]}"; do
     if [[ "${#osinfo[@]}" != 1 ]]; then
-      osfinal=($(echo "${osinfo[@]}" | grep -i "${pattern}"));
+      osfinal=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
       if [[ "${#os_final[@]}" != 1 ]]; then
         unset osfinal;
-        osfinal=($(echo -e "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
+        osfinal=($(printf '%s\n' "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
         echo "Filter 3"
-        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
       else
         echo "Filter 2"
-        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
       fi
     else
       echo "Filter 1"
-      echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+      osfinal=("${osinfo[@]}");
+      echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
       break;
     fi
   done
