@@ -310,16 +310,19 @@ valid_primary_disk() {
     if [[ "${#os_final[@]}" != 1 ]]; then
       unset os_final;
       os_final=($(echo "${osinfo}" | grep -i "${pattern}"));
-      if [[ "${#os_final[@]}" != 1]]; then
+      if [[ "${#os_final[@]}" != 1 ]]; then
         unset os_final;
         os_final=($(echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
+        echo "Filter 3"
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
         break;
       else
+        echo "Filter 2"
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
         break;
       fi
     else
+      echo "Filter 1"
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
       break;
     fi
