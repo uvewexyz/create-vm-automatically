@@ -299,38 +299,25 @@ valid_primary_disk() {
   # Validate OS variant will be used
   vm_disk1_basename=$(basename "${vm_disk1}");
   patterns=();
-  patterns+=( `echo "${vm_disk1_basename}" | awk -F'-' '{print $1}'` );
-  patterns+=( `echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'` );
-  patterns+=( `echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'` );
-  patterns+=( `echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'` );
+  patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $1}'));
+  patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'));
+  patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'));
+  patterns+=($(echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'));
   # Begin to match OS with available pattern
   osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
-  os_final=();
+  os_final=("${osinfo}");
   for pattern in "${patterns[@]}"; do
-    if [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l)" != 1 ]]; then
-      os_final+=( `echo "${osinfo}" | grep -i "${pattern}"` );
-      if [[ "${#os_final[@]}" != 1 ]]; then
+    if [[ "${#os_final[@]}" != 1 ]]; then
+      unset os_final;
+      os_final=($(echo "${osinfo}" | grep -i "${pattern}"));
+      if [[ "${#os_final[@]}" != 1]]; then
         unset os_final;
-        os_final+=( `echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"` );
+        os_final=($(echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
-        break;
       else
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
-        break;
-      fi
-    elif [[ -n "${osinfo}" && "$(echo ${osinfo} | wc -l)" == 1 ]]; then
-      os_final+=(`echo "${osinfo}"`);
-      if [[ "${#os_final[@]}" != 1 ]]; then
-        unset os_final;
-        os_final+=( `echo "${osinfo}" | grep -i "${pattern}"` );
-        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
-        break;
-      else
-        echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
-        break;
       fi
     else
-      os_final+=(unknown);
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
     fi
   done
