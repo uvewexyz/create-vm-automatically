@@ -303,16 +303,21 @@ valid_primary_disk() {
   patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'));
   patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'));
   patterns+=($(echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'));
+  # osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
+  # os_final=("${osinfo}");
+  # List and split the OS name
+  osinfo=()
+  osfinal=();
+  while IFS= read -r oslist; do
+    osinfo+=("${oslist}");
+  done < <(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   # Begin to match OS with available pattern
-  osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
-  os_final=("${osinfo}");
   for pattern in "${patterns[@]}"; do
-    if [[ "${#os_final[@]}" != 1 ]]; then
-      unset os_final;
-      os_final=($(echo "${osinfo}" | grep -i "${pattern}"));
+    if [[ "${#osinfo[@]}" != 1 ]]; then
+      osfinal=($(echo "${osinfo[@]}" | grep -i "${pattern}"));
       if [[ "${#os_final[@]}" != 1 ]]; then
-        unset os_final;
-        os_final=($(echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
+        unset osfinal;
+        osfinal=($(echo -e "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
         echo "Filter 3"
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
         break;
