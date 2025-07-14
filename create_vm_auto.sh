@@ -314,11 +314,14 @@ valid_primary_disk() {
         unset os_final;
         os_final=($(echo "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        break;
       else
         echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+        break;
       fi
     else
       echo -e "${blue}INFO:${reset} ${red}${os_final[@]}${reset}";
+      break;
     fi
   done
 }
