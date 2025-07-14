@@ -313,23 +313,12 @@ valid_primary_disk() {
   # done < <(echo "${osinfo}");
   # Begin to match OS with available pattern
   for pattern in "${patterns[@]}"; do
-    if [[ "${#osinfo[@]}" != 1 ]]; then
-      echo "Filter 1"
-      osfinal=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
-      echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-      if [[ "${#os_final[@]}" != 1 ]]; then
-        echo "Filter 3"
-        osfinal=($(printf '%s\n' "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
-        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-        break;
-      else
-        echo "Filter 2"
-        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-        break;
-      fi
-    else
-      echo "Filter 1"
+    if [[ "${#osinfo[@]}" == 1 ]]; then
       osfinal=("${osinfo[@]}");
+      echo -e "${blue}INFO:${reset} ${red}${osfinal[0]}${reset}";
+      break;
+    else
+      osfinal=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
       echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
       break;
     fi
