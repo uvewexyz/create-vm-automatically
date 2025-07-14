@@ -316,7 +316,6 @@ valid_primary_disk() {
     if [[ "${#osinfo[@]}" != 1 ]]; then
       osfinal=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
       if [[ "${#os_final[@]}" != 1 ]]; then
-        unset osfinal;
         osfinal=($(printf '%s\n' "${osinfo}" | grep -i "${pattern}" | grep -i "${pattern}"));
         echo "Filter 3"
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
