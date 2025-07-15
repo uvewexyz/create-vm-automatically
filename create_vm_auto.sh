@@ -312,12 +312,12 @@ valid_primary_disk() {
   # Begin to match OS with available pattern
   osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}'));
   osfinal=();
-  i=0;
   if [[ "${#osinfo[@]}" == 1 ]]; then
     osfinal+=("${osinfo[@]}");
     echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
   else
-    while [[ $i -lt "${#patterns[@]}" ]]; do
+    i=0;
+    while [[ "${i}" -le "${#patterns[@]}" ]]; do
       osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
       echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
       if [[ "${#osfinal[@]}" == 1 ]]; then
