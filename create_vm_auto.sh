@@ -312,19 +312,29 @@ valid_primary_disk() {
   # Begin to match OS with available pattern
   osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}'));
   osfinal=();
-  for pattern in "${patterns[@]}"; do
-    if [[ "${#osinfo[@]}" != 1 ]]; then
-      osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
-      echo "Pattern 0 & 1"
-      echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-      break;
-    else
-      osfinal=("${osinfo[@]}");
-      echo "Pattern 0"
+  i=0;
+
+  while [[ $i -lt "${#patterns[@]}" ]]; do
+    osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
+    if [[ "${#osfinal[@]}" == 1 ]]; then
       echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
       break;
     fi
+    ((i++));
   done
+  # for pattern in "${patterns[@]}"; do
+    # if [[ "${#osinfo[@]}" != 1 ]]; then
+      # osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
+      # echo "Pattern 0 & 1"
+      # echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+      # break;
+    # else
+      # osfinal=("${osinfo[@]}");
+      # echo "Pattern 0"
+      # echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+      # break;
+    # fi
+  # done
 }
 
 valid_primary_disk;
