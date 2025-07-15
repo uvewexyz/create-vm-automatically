@@ -314,6 +314,7 @@ valid_primary_disk() {
   osfinal=();
   i=0;
   if [[ "${#osinfo[@]}" == 1 ]]; then
+    osfinal+=("${osinfo[@]}");
     echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
   else
     while [[ $i -lt "${#patterns[@]}" ]]; do
