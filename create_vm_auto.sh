@@ -319,6 +319,7 @@ valid_primary_disk() {
   else
     while [[ $i -lt "${#patterns[@]}" ]]; do
       osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
+      echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
       if [[ "${#osfinal[@]}" == 1 ]]; then
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
