@@ -318,7 +318,7 @@ valid_primary_disk() {
     for pattern1 in "${patterns[@]}"; do
       for pattern2 in "${patterns[@]}"; do
         osfilter=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern1}" | grep -i "${pattern2}"));
-        if [[ "${#osfilter[@]}" ]]; then
+        if [[ -n "${osfilter[@]}" || "${#osfilter[@]}" == 1 ]]; then
           osfinal+=("${osfilter[@]}");
           echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
           break 2;
