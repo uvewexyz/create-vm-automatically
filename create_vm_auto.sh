@@ -329,9 +329,10 @@ valid_primary_disk() {
   if [[ "${#osfinal[@]}" != 1 ]]; then
     i=0;
     while [[ "${i}" -le "${#patterns[@]}" ]]; do
-      filtered2=($(printf '%s\n' "${osfinal[@]}" | grep -i "${patterns[$i]}"));
+      filtered1=($(printf '%s\n' "${osfinal[@]}" | grep -i "${patterns[$i]}"));
+      filtered2=($(printf '%s\n' "${filtered1[@]}" | grep -i "${patterns[$i]}"));
       if [[ "${#filtered2[@]}" == 1 ]]; then
-        unset osfinal;
+        # unset osfinal;
         osfinal+=("${filtered2[@]}");
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
