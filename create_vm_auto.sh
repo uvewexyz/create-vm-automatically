@@ -10,12 +10,12 @@ line="--------------------------------------------------------------------------
 src_dir="/var/lib/libvirt/images"
 dst_dir="/var/lib/libvirt/workdir"
 timestamp=$(date +%d_%m_%y_%H_%M_%S)
-ubuntu22="jammy-server-cloudimg-amd64.img"
-ubuntu20="focal-server-cloudimg-amd64.img"
-almalinux9="AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
-alpinelinux21="alpine-virt-3.21.3-x86.qcow2"
-centosstream9="CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2"
-openwrt="openwrt-24.10.1-x86-generic-generic-ext4-combined-efi.qcow2"
+# ubuntu22="jammy-server-cloudimg-amd64.img"
+# ubuntu20="focal-server-cloudimg-amd64.img"
+# almalinux9="AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
+# alpinelinux21="alpine-virt-3.21.3-x86.qcow2"
+# centosstream9="CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2"
+# openwrt="openwrt-24.10.1-x86-generic-generic-ext4-combined-efi.qcow2"
 
 echo -e "
 ###########################################################
@@ -293,7 +293,6 @@ valid_primary_disk() {
       sleep 2 && clear && valid_primary_disk;
     else
       echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
-      echo "${line}";
     fi
   fi
   # Validate OS variant will be used
@@ -340,6 +339,7 @@ valid_primary_disk() {
       ((i++));
     done
   fi
+  echo "${line}";
   # for pattern in "${patterns[@]}"; do
     # if [[ "${#osinfo[@]}" != 1 ]]; then
       # osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
@@ -572,7 +572,7 @@ valid_processing_vm() {
     --disk path="${vm_disk1}",format=qcow2 \
     "${disk_peripheral[@]}" \
     --cloud-init user-data="${dst_dir}"/"${vm_name}"-user-data \
-    --osinfo detect=on,name="${vm_os}" \
+    --osinfo detect=on,name="${osfinal[@]}" \
     --network bridge="${vm_if_select}" \
     --noautoconsole;
   sleep 2;
