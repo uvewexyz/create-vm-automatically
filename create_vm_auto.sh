@@ -311,37 +311,37 @@ valid_primary_disk() {
   # Begin to match OS with available pattern
   osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}'));
   osfinal=();
-  if [[ "${#osinfo[@]}" == 1 ]]; then
-    osfinal+=("${osinfo[@]}");
-    echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-  else
-    for pattern1 in "${patterns[@]}"; do
-      for pattern2 in "${patterns[@]}"; do
-        osfilter=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern1}" | grep -i "${pattern2}"));
-        if [[ -n "${osfilter[@]}" || "${#osfilter[@]}" == 1 ]]; then
-          osfinal+=("${osfilter[@]}");
-          echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-          break 2;
-        fi
-      done
-    done
-  fi
-
   # if [[ "${#osinfo[@]}" == 1 ]]; then
   #   osfinal+=("${osinfo[@]}");
   #   echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
   # else
-  #   i=0;
-  #   while [[ "${i}" -le "${#patterns[@]}" ]]; do
-  #     filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
-  #     if [[ "${#filtered[@]}" == 1 ]]; then
-  #       osfinal+=("${filtered[@]}");
-  #       echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-  #       break;
-  #     fi
-  #     ((i++));
+  #   for pattern1 in "${patterns[@]}"; do
+  #     for pattern2 in "${patterns[@]}"; do
+  #       osfilter=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern1}" | grep -i "${pattern2}"));
+  #       if [[ -n "${osfilter[@]}" || "${#osfilter[@]}" == 1 ]]; then
+  #         osfinal+=("${osfilter[@]}");
+  #         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+  #         break 2;
+  #       fi
+  #     done
   #   done
   # fi
+
+  if [[ "${#osinfo[@]}" == 1 ]]; then
+    osfinal+=("${osinfo[@]}");
+    echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+  else
+    i=0;
+    while [[ "${i}" -le "${#patterns[@]}" ]]; do
+      filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
+      if [[ "${#filtered[@]}" == 1 ]]; then
+        osfinal+=("${filtered[@]}");
+        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+        break;
+      fi
+      ((i++));
+    done
+  fi
   # if [[ "${#osfinal[@]}" != 1 ]]; then
   #   i=0;
   #   while [[ "${i}" -le "${#patterns[@]}" ]]; do
