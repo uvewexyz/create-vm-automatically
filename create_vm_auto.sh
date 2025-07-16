@@ -327,7 +327,7 @@ valid_primary_disk() {
       ((i++));
     done
   fi
-  if [[ "${#osfinal[@]}" != 1]]; then
+  if [[ "${#osfinal[@]}" != 1 ]]; then
     i=0;
     while [[ "${i}" -le "${#patterns[@]}" ]]; do
       filtered2=($(printf '%s\n' "${osfinal[@]}" | grep -i "${patterns[$i]}"));
