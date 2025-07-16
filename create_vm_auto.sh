@@ -315,31 +315,47 @@ valid_primary_disk() {
     osfinal+=("${osinfo[@]}");
     echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
   else
-    i=0;
-    while [[ "${i}" -le "${#patterns[@]}" ]]; do
-      filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
-      if [[ "${#filtered[@]}" == 1 ]]; then
-        osfinal+=("${filtered[@]}");
-        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-        break;
-      fi
-      ((i++));
+    for pattern1 in "${patterns[@]}"; do
+      for pattern2 in "${patterns[@]}"; do
+        osfilter=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern1}" | grep -i "${pattern2}"));
+        if [[ "${#osfilter[@]}" ]]; then
+          osfinal+=("${osfilter[@]}");
+          echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+          break 2;
+        fi
+      done
     done
   fi
-  if [[ "${#osfinal[@]}" != 1 ]]; then
-    i=0;
-    while [[ "${i}" -le "${#patterns[@]}" ]]; do
-      filtered1=($(printf '%s\n' "${osfinal[@]}" | grep -i "${patterns[$i]}"));
-      filtered2=($(printf '%s\n' "${filtered1[@]}" | grep -i "${patterns[$i]}"));
-      if [[ "${#filtered2[@]}" == 1 ]]; then
-        # unset osfinal;
-        osfinal+=("${filtered2[@]}");
-        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-        break;
-      fi
-      ((i++));
-    done
-  fi
+
+  # if [[ "${#osinfo[@]}" == 1 ]]; then
+  #   osfinal+=("${osinfo[@]}");
+  #   echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+  # else
+  #   i=0;
+  #   while [[ "${i}" -le "${#patterns[@]}" ]]; do
+  #     filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
+  #     if [[ "${#filtered[@]}" == 1 ]]; then
+  #       osfinal+=("${filtered[@]}");
+  #       echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+  #       break;
+  #     fi
+  #     ((i++));
+  #   done
+  # fi
+  # if [[ "${#osfinal[@]}" != 1 ]]; then
+  #   i=0;
+  #   while [[ "${i}" -le "${#patterns[@]}" ]]; do
+  #     filtered1=($(printf '%s\n' "${osfinal[@]}" | grep -i "${patterns[$i]}"));
+  #     filtered2=($(printf '%s\n' "${filtered1[@]}" | grep -i "${patterns[$i]}"));
+  #     if [[ "${#filtered2[@]}" == 1 ]]; then
+  #       # unset osfinal;
+  #       osfinal+=("${filtered2[@]}");
+  #       echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+  #       break;
+  #     fi
+  #     ((i++));
+  #   done
+  # fi
   echo "${line}";
   # for pattern in "${patterns[@]}"; do
     # if [[ "${#osinfo[@]}" != 1 ]]; then
