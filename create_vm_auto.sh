@@ -138,6 +138,8 @@ valid_workdir() {
   echo "Checking if your system has the workdir directory";
   if [[ ! -d "${src_dir}" ]]; then
     sudo mkdir "${src_dir}";
+    sudo chmod -R 777 /var/lib/libvirt/workdir;
+    sudo chmod -R 777 /var/lib/libvirt/images;
     if [[ ! -d "${src_dir}" ]]; then
       echo -e "${red}FAIL:${reset} Failed to create directory";
       echo -e "${blue}INFO:${reset} Please fix the problem";
@@ -678,7 +680,7 @@ valid_final_vm() {
     echo -e "${blue}INFO:${reset} Successfully created VM with name ${red}${vm_name}${reset}";
     virsh list --all | grep -i "${vm_name}";
   else
-    echo "${red}FAIL:${reset} VM failed to create! There was an error during the process.";
+    echo -e "${red}FAIL:${reset} VM failed to create! There was an error during the process.";
     sleep 2;
     echo -e "${blue}INFO:${reset} You can check the ${red}journalctl -u libvirtd -xe${reset} for more details.";
     exit 1;
