@@ -7,15 +7,9 @@ red="\033[1;31m"
 yellow="\033[1;33m"
 reset="\033[0m"
 line="-------------------------------------------------------------------------------------"
-src_dir="/var/lib/libvirt/images"
-dst_dir="/var/lib/libvirt/workdir"
+src_dir="/var/lib/libvirt/workdir"
+dst_dir="/var/lib/libvirt/images"
 timestamp=$(date +%d_%m_%y_%H_%M_%S)
-# ubuntu22="jammy-server-cloudimg-amd64.img"
-# ubuntu20="focal-server-cloudimg-amd64.img"
-# almalinux9="AlmaLinux-9-GenericCloud-latest.x86_64.qcow2"
-# alpinelinux21="alpine-virt-3.21.3-x86.qcow2"
-# centosstream9="CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2"
-# openwrt="openwrt-24.10.1-x86-generic-generic-ext4-combined-efi.qcow2"
 
 echo -e "
 ###########################################################
@@ -201,6 +195,7 @@ valid_mem;
 valid_cpu() {
   # Prompt to specify the VM vCPU size
   echo -e "${blue}INFO:${reset} Total size cpu available is ${red}$(nproc)${reset} core";
+  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}512, 1024, 2048, or etc${reset}";
   read -e -i "1" -p "How much is the cpu core you want allocated for your VM?: " vm_cpu;
   if [[ "${vm_cpu}" -lt 1  || "${vm_cpu}" -ge "$(nproc)" ]]; then
     echo -e "${red}FAIL:${reset} Invalid CPU size! Enter value between ${red}1${reset} core - ${red}$(nproc)${reset} core";
@@ -232,24 +227,6 @@ valid_os_image() {
   echo "${line}";
 }
 
-# # Selecting the OS to VM
-# valid_os() {
-#   # Prompt to select the OS for the VM
-#   os_lists=("ubuntu22.04" "ubuntu20.04" "almalinux9" "alpinelinux3.21" "centos-stream9" "openwrt");
-#   for os in "${!os_lists[@]}"; do
-#     num=$((os + 1));
-#     echo -e "${num}.) ${red}${os_lists[$os]}${reset}";
-#   done
-#   echo -e "${blue}INFO:${reset} Example selection is 1, 2, 3, or etc...";
-#   read -e -p "Selecting an OS for your VM (select the number): " vm_os;
-#   # The line below is used to debugging
-#   # echo -e "Selecting the number: ${red}${vm_os}${reset}";
-#   if [[ "${vm_os}" -lt 1 && "${vm_os}" -gt "${#os_lists[@]}" ]]; then
-#     echo -e "${red}FAIL:${reset} Invalid selection! Please select a number between 1 and ${#os_lists[@]}";
-#     sleep 2 && valid_os;
-#   fi
-# }
-
 # Function to check available disk space in the storage pool
 valid_disk_available() {
   for pool_storage in $(virsh pool-list --all --name); do 
@@ -275,7 +252,7 @@ valid_clone_image() {
 valid_primary_disk() {
   valid_os_image;
   valid_disk_available;
-  echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
+  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}1, 2, 3, or etc${reset}";
   read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB): " vm_disk1_size;
   # Validate the disk size input
   if [[ ! "${vm_disk1_size}" =~ ^[0-9]+$ || "${vm_disk1_size}" -lt 0 ]]; then
@@ -295,73 +272,54 @@ valid_primary_disk() {
       echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
     fi
   fi
-  # Validate OS variant will be used
+  # Validate OS variant will being used
   vm_disk1_basename=$(basename "${vm_disk1}");
   ospattern=();
   ospattern+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $1}'));
   ospattern+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'));
   ospattern+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'));
   ospattern+=($(echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'));
-  # osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
-  # os_final=("${osinfo}");
-  # List and split the OS name
-  # while IFS= read -r oslist; do
-  #   osfinal+=("${oslist}");
-  # done < <(echo "${osinfo}");
-  # Begin to match OS with available pattern
   osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${ospattern[0]}" | awk '{print $1}'));
   osfinal=();
-  # if [[ "${#osinfo[@]}" == 1 ]]; then
-  #   osfinal+=("${osinfo[@]}");
-  #   echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-  # else
-  #   for pattern1 in "${patterns[@]}"; do
-  #     for pattern2 in "${patterns[@]}"; do
-  #       osfilter=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern1}" | grep -i "${pattern2}"));
-  #       if [[ -n "${osfilter[@]}" || "${#osfilter[@]}" == 1 ]]; then
-  #         osfinal+=("${osfilter[@]}");
-  #         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-  #         break 2;
-  #       fi
-  #     done
-  #   done
-  # fi
-
+  # If value in the osinfo array is correct, it will be added to the osfinal array and printed 
   if [[ "${#osinfo[@]}" == 1 ]]; then
     osfinal+=("${osinfo[@]}");
     echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
   else
     i=0;
     while [[ "${i}" -le "${#ospattern[@]}" ]]; do
-      filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${ospattern[$i]}"));
-      if [[ "${#filtered[@]}" == 1 ]]; then
-        osfinal+=("${filtered[@]}");
+      osfilter=($(printf '%s\n' "${osinfo[@]}" | grep -i "${ospattern[$i]}"));
+      if [[ "${#osfilter[@]}" == 1 ]]; then
+        osfinal+=("${osfilter[@]}");
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
       fi
       ((i++));
     done
   fi
-  if [[ "${#filtered[@]}" -gt 1 ]]; then
+  # Process if values in the osfilter array is more than 1, it will be filtered again
+  if [[ "${#osfilter[@]}" -gt 1 ]]; then
     i=1;
     while [[ "${i}" -le "${#ospattern[@]}" ]]; do
-      filtered1=($(printf '%s\n' "${filtered[@]}" | grep -i "${ospattern[$i]}"));
-      if [[ "${#filtered1[@]}" == 1 ]]; then
+      osfilter1=($(printf '%s\n' "${osfilter[@]}" | grep -i "${ospattern[$i]}"));
+      if [[ "${#osfilter1[@]}" == 1 ]]; then
         # unset osfinal;
-        osfinal+=("${filtered1[@]}");
+        osfinal+=("${osfilter1[@]}");
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+        break;
+      else
+        osfilter2+=("${filtered1[@]}");
         break;
       fi
       ((i++));
     done
   fi
-  if [[ "${#filtered1[@]}" -gt 1 ]]; then
-    i=2;
+  # If the above filtering still returns more than 1 value, then those values will be filtered again with the following operation
+  if [[ "${#osfilter2[@]}" -gt 1 ]]; then
+    i=0;
     while [[ "${i}" -le "${#ospattern[@]}" ]]; do
-      filtered2=($(printf '%s\n' "${filtered1[@]}" | grep -i "${ospattern[$i]}"));
-      if [[ "${#filtered2[@]}" == 1 ]]; then
-        # unset osfinal;
-        osfinal+=("${filtered2[@]}");
+      osfinal=($(printf '%s\n' "${osfilter2[@]}" | grep -i "${ospattern[$i]}"));
+      if [[ "${#osfinal[@]}" == 1 ]]; then
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
       fi
@@ -369,94 +327,9 @@ valid_primary_disk() {
     done
   fi  
   echo "${line}";
-  # for pattern in "${patterns[@]}"; do
-    # if [[ "${#osinfo[@]}" != 1 ]]; then
-      # osfinal+=($(printf '%s\n' "${osinfo[@]}" | grep -i "${pattern}"));
-      # echo "Pattern 0 & 1"
-      # echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-      # break;
-    # else
-      # osfinal=("${osinfo[@]}");
-      # echo "Pattern 0"
-      # echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
-      # break;
-    # fi
-  # done
 }
 
 valid_primary_disk;
-
-# # Specify the size of the primary disk
-# valid_os_disk() {
-#   valid_os;
-#   echo "${line}";
-#   valid_disk_available;
-#   echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
-#   read -e -i "15" -p "How much is the disk size you want allocated for your primary disk? (in GiB): " vm_disk1_size;
-
-#   # Validate the disk size input
-#   if [[ ! "${vm_disk1_size}" =~ ^[0-9]+$ && "${vm_disk1_size}" -lt 0 ]]; then
-#     echo -e "${red}FAIL:${reset} Invalid disk size! Please input a valid size number greater than 0";
-#     sleep 2 && clear && valid_os_disk;
-#   fi
-
-#   case "${vm_os}" in
-#     1)
-#       vm_disk1=$(valid_copy_image "$ubuntu22" "ubuntu22-$timestamp.img")
-#       ;;
-#     2)
-#       vm_disk1=$(valid_copy_image "$ubuntu20" "ubuntu20-$timestamp.img")
-#       ;;
-#     3)
-#       vm_disk1=$(valid_copy_image "$almalinux9" "almalinux9-$timestamp.img")
-#       ;;
-#     4)
-#       vm_disk1=$(valid_copy_image "$alpinelinux21" "alpinelinux21-$timestamp.img")
-#       ;;
-#     5)
-#       vm_disk1=$(valid_copy_image "$centosstream9" "centosstream9-$timestamp.img")
-#       ;;
-#     6)
-#       vm_disk1=$(valid_copy_image "$openwrt" "openwrt-$timestamp.img")
-#       ;;
-#     *)
-#       echo "${red}FAIL:${reset} Option not found!. Please select between 1, 2, 3, 4, 5, or 6!!!"
-#       exit 1
-#       ;;
-#   esac
-
-#   # Show the primary disk image path
-#   echo -e "${green}SUCCESS:${reset} The primary disk path is at ${red}${vm_disk1}${reset}";
-#   echo "${line}"
-
-#   case "${vm_os}" in
-#     1)
-#       vm_os="ubuntu22.04"
-#       ;;
-#     2)
-#       vm_os="ubuntu20.04"
-#       ;;
-#     3)
-#       vm_os="almalinux9"
-#       ;;
-#     4)
-#       vm_os="alpinelinux3.21"
-#       ;;
-#     5)
-#       vm_os="centos-stream9"
-#       ;;
-#     6)
-#       vm_os="unknown"
-#       ;;
-#     *)
-#       echo "${red}FAIL:${reset} Option not found!. Please select between 1, 2, 3, 4, 5, or 6!!!"
-#       sleep 3;
-#       clear && valid_os;
-#       ;;
-#   esac
-# }
-
-# valid_os_disk;
 
 valid_peripheral_disk_size() {
   if [[ "${peripheral_disk_size}" =~ ^[0-9]+$ && "${peripheral_disk_size}" -gt 0 ]]; then
@@ -469,12 +342,12 @@ valid_peripheral_disk_size() {
 
 valid_peripheral_disk_count() {
   echo -e "${blue}INFO:${reset} The peripheral disk will be the block device like: ${red}sdb, sdc, vdb, vdc, etc.${reset}";
-  echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
+  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}1, 2, 3, or etc${reset}";
   read -e -p "How many peripheral disk do you want to add to the VM?: " peripheral_disk_count;
   echo "${line}";
   if [[ "${peripheral_disk_count}" =~ ^[0-9]+$ && "${peripheral_disk_count}" -gt 0 ]]; then
     disk_peripheral=()
-    echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc.${reset}";
+    echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}1, 2, 3, or etc.${reset}";
     read -e -p "How much is the disk size you want allocated for your peripheral disk? (in GiB): " peripheral_disk_size;
     # Loop to create the specified number of peripheral disks
     for ((i = 1; i <= "${peripheral_disk_count}"; i++)); do
@@ -527,7 +400,7 @@ valid_vir_net() {
     echo -e "${num}.) Virtual Network: ${red}${net_name[${vnet}]}${reset} | Interface: ${red}${net_if[${vnet}]}${reset}";
   done
   # Prompt to select a virtual network
-  echo -e "${yellow}TIPS:${reset} Fill in the below question with the number: ${red}1, 2, 3, or etc${reset}";
+  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}1, 2, 3, or etc${reset}";
   read -e -p "Select the number of the virtual network to attach to the VM: " net_num;
   echo "${line}"
   sleep 2;
@@ -605,6 +478,8 @@ valid_processing_vm() {
     --network bridge="${vm_if_select}" \
     --noautoconsole;
   sleep 2;
+  # Activate the autostart for the VM
+  virsh autostart "${vm_name}";
 }
 
 valid_cloud_init() {
