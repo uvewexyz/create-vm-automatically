@@ -136,19 +136,19 @@ valid_user;
 valid_workdir() {
   echo "${line}"
   echo "Checking if your system has the workdir directory";
-  if [[ ! -d "${dst_dir}" ]]; then
-    sudo mkdir "${dst_dir}";
-    if [[ ! -d "${dst_dir}" ]]; then
+  if [[ ! -d "${src_dir}" ]]; then
+    sudo mkdir "${src_dir}";
+    if [[ ! -d "${src_dir}" ]]; then
       echo -e "${red}FAIL:${reset} Failed to create directory";
       echo -e "${blue}INFO:${reset} Please fix the problem";
       exit 1;
     else
-      echo -e "${green}SUCCESS:${reset} The ${red}${dst_dir}${reset} directory has been successfully created";
+      echo -e "${green}SUCCESS:${reset} The ${red}${src_dir}${reset} directory has been successfully created";
       sleep 2;
       clear;
     fi
   else
-    echo -e "${blue}INFO:${reset} The ${red}${dst_dir}${reset} directory is already exists";
+    echo -e "${blue}INFO:${reset} The ${red}${src_dir}${reset} directory is already exists";
     sleep 2;
     clear;
   fi
@@ -177,6 +177,7 @@ valid_mem() {
   # Prompt to specify thre VM memory size
   vm_mem_max="$(grep -i "MemAvailable" /proc/meminfo | awk '{print $2/1048}' | cut -d. -f1)"
   echo -e "${blue}INFO:${reset} Total size memory available is ${red}${vm_mem_max}${reset} MiB";
+  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}512, 1024, 2048, or etc${reset}";
   read -e -p "How much is the memory size you want allocated for your VM? (in MiB): " vm_mem;
   if [[ "${vm_mem}" -ge "${vm_mem_max}" ]]; then
     echo -e "${red}FAIL:${reset} Invalid memory size! Input below ${red}${vm_mem_max}${reset} MiB";
@@ -195,7 +196,7 @@ valid_mem;
 valid_cpu() {
   # Prompt to specify the VM vCPU size
   echo -e "${blue}INFO:${reset} Total size cpu available is ${red}$(nproc)${reset} core";
-  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}512, 1024, 2048, or etc${reset}";
+  echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}1, 2, 3, or etc${reset}";
   read -e -i "1" -p "How much is the cpu core you want allocated for your VM?: " vm_cpu;
   if [[ "${vm_cpu}" -lt 1  || "${vm_cpu}" -ge "$(nproc)" ]]; then
     echo -e "${red}FAIL:${reset} Invalid CPU size! Enter value between ${red}1${reset} core - ${red}$(nproc)${reset} core";
@@ -308,7 +309,7 @@ valid_primary_disk() {
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
         break;
       else
-        osfilter2+=("${filtered1[@]}");
+        osfilter2+=("${osfilter1[@]}");
         break;
       fi
       ((i++));
@@ -485,7 +486,7 @@ valid_processing_vm() {
 valid_cloud_init() {
   # Load the user-data file based on the selected OS
   # This is Ubuntu 22.04 and Ubuntu 20.04 user-data file
-  if [[ "${vm_os}" == "ubuntu22.04" || "${vm_os}" == "ubuntu20.04" ]]; then
+  if [[ "${osfinal[@]}" == "ubuntu22.04" || "${osfinal[@]}" == "ubuntu20.04" ]]; then
     valid_vir_net;
     valid_ip;
     valid_access_login;
@@ -543,7 +544,7 @@ runcmd:
   - cloud-init status --wait
 EOF
     valid_processing_vm;
-  elif [[ "${vm_os}" == "almalinux9" || "${vm_os}" == "centos-stream9" ]]; then
+  elif [[ "${osfinal[@]}" == "almalinux9" || "${osfinal[@]}" == "centos-stream9" ]]; then
     valid_vir_net;
     valid_ip;
     valid_access_login;
@@ -592,7 +593,7 @@ runcmd:
   - cloud-init status --wait
 EOF
     valid_processing_vm;
-  elif [[ "${vm_os}" == "alpinelinux3.21" ]]; then
+  elif [[ "${osfinal[@]}" == "alpinelinux3.21" ]]; then
     valid_vir_net;
     valid_ip;
     valid_access_login;
