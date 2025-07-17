@@ -589,7 +589,6 @@ runcmd:
   - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - systemctl restart sshd
   - systemctl restart NetworkManager
-  - systemctl enable nginx && systemctl start nginx
   - cloud-init status --wait
 EOF
     valid_processing_vm;
