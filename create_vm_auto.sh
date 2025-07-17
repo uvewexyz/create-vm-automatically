@@ -465,7 +465,7 @@ valid_access_login() {
 # Process the VM creation
 valid_processing_vm() {
   echo -e "${blue}INFO:${reset} Create VM name is ${red}${vm_name}${reset}";
-  echo -e "${blue}INFO:${reset} VM OS is ${red}${vm_os}${reset}";
+  echo -e "${blue}INFO:${reset} VM OS is ${red}${osfinal[@]}${reset}";
   echo "${line}"
   sleep 2;
   virt-install -q -n "${vm_name}" \
