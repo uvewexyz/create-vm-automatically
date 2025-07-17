@@ -394,7 +394,7 @@ valid_vir_net() {
     exit 1;
   fi
   # List available virtual networks
-  echo -e "${blue}INFO:${reset}";
+  echo -e "${blue}INFO:${reset} Below is the list of available virtual networks";
   sleep 2;
   for vnet in "${!net_name[@]}"; do
     num=$((vnet + 1));
