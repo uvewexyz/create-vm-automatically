@@ -297,11 +297,11 @@ valid_primary_disk() {
   fi
   # Validate OS variant will be used
   vm_disk1_basename=$(basename "${vm_disk1}");
-  patterns=();
-  patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $1}'));
-  patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'));
-  patterns+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'));
-  patterns+=($(echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'));
+  ospattern=();
+  ospattern+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $1}'));
+  ospattern+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $2}'));
+  ospattern+=($(echo "${vm_disk1_basename}" | awk -F'-' '{print $4}'));
+  ospattern+=($(echo "${vm_disk1_basename}" | grep -oP '[0-9]+\.[0-9]+'));
   # osinfo=$(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}');
   # os_final=("${osinfo}");
   # List and split the OS name
@@ -309,7 +309,7 @@ valid_primary_disk() {
   #   osfinal+=("${oslist}");
   # done < <(echo "${osinfo}");
   # Begin to match OS with available pattern
-  osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${patterns[0]}" | awk '{print $1}'));
+  osinfo=($(osinfo-query os --fields=short-id,name,codename | grep -i "${ospattern[0]}" | awk '{print $1}'));
   osfinal=();
   # if [[ "${#osinfo[@]}" == 1 ]]; then
   #   osfinal+=("${osinfo[@]}");
@@ -332,8 +332,8 @@ valid_primary_disk() {
     echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
   else
     i=0;
-    while [[ "${i}" -le "${#patterns[@]}" ]]; do
-      filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${patterns[$i]}"));
+    while [[ "${i}" -le "${#ospattern[@]}" ]]; do
+      filtered=($(printf '%s\n' "${osinfo[@]}" | grep -i "${ospattern[$i]}"));
       if [[ "${#filtered[@]}" == 1 ]]; then
         osfinal+=("${filtered[@]}");
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
@@ -344,9 +344,9 @@ valid_primary_disk() {
   fi
   if [[ "${#filtered[@]}" -gt 1 ]]; then
     i=1;
-    while [[ "${i}" -le "${#patterns[@]}" ]]; do
-      filtered1=($(printf '%s\n' "${filtered[@]}" | grep -i "${patterns[$i]}"));
-      if [[ -n "${filtered1[@]}" || "${#filtered1[@]}" == 1 ]]; then
+    while [[ "${i}" -le "${#ospattern[@]}" ]]; do
+      filtered1=($(printf '%s\n' "${filtered[@]}" | grep -i "${ospattern[$i]}"));
+      if [[ "${#filtered1[@]}" == 1 ]]; then
         # unset osfinal;
         osfinal+=("${filtered1[@]}");
         echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
@@ -355,6 +355,19 @@ valid_primary_disk() {
       ((i++));
     done
   fi
+  if [[ "${#filtered1[@]}" -gt 1 ]]; then
+    i=2;
+    while [[ "${i}" -le "${#ospattern[@]}" ]]; do
+      filtered2=($(printf '%s\n' "${filtered1[@]}" | grep -i "${ospattern[$i]}"));
+      if [[ "${#filtered2[@]}" == 1 ]]; then
+        # unset osfinal;
+        osfinal+=("${filtered2[@]}");
+        echo -e "${blue}INFO:${reset} ${red}${osfinal[@]}${reset}";
+        break;
+      fi
+      ((i++));
+    done
+  fi  
   echo "${line}";
   # for pattern in "${patterns[@]}"; do
     # if [[ "${#osinfo[@]}" != 1 ]]; then
