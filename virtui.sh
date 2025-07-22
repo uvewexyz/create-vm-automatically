@@ -59,7 +59,7 @@ valid_support;
 valid_package() {
   echo "${line}"
   echo "Checking if the libvirt package dependencies have installed";
-  declare -a packages=("cpu-checker" "ipcalc" "whois" "qemu-system" "libvirt-daemon-system" "virtinst")
+  declare -a packages=("cpu-checker" "ipcalc" "whois" "qemu-system" "libvirt-daemon-system" "virtinst" "libosinfo-bin")
   for pack in ${packages[@]}; do
     if [[ -z "$(sudo apt list --installed|grep "${pack}")" ]]; then
       echo -e "${blue}INFO:${reset} Package ${red}${pack}${reset} not found";
