@@ -166,7 +166,7 @@ valid_one_image() {
     echo -e "${red}FAIL:${reset} The ${red}${src_dir}${reset} directory is empty";
     echo -e "${blue}INFO:${reset} Installing ${red}ubuntu20.04${reset} image to become base image";
     wget -nv https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img -O "${src_dir}"/focal-server-cloudimg-amd64.img;
-    if [[ ! -f "focal-server-cloudimg-amd64.img" ]]; then
+    if [[ ! -f "${src_dir}/focal-server-cloudimg-amd64.img" ]]; then
       echo -e "${red}FAIL:${reset} Failed to download the image";
       echo -e "${blue}INFO:${reset} Please fix the problem";
       exit 1;
