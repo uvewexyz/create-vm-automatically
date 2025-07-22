@@ -42,7 +42,7 @@ valid_support() {
   echo "${line}"
   echo "Checking if your system support virtualization";
   if ! lscpu | grep "^Virtualization" > /dev/null 2>&1; then
-    echo -e "${red}FAIL:${reset} Unseccessfully to start creating VM";
+    echo -e "${red}FAIL:${reset} Unsuccessfully to start creating VM";
     echo -e "${blue}INFO:${reset} Your system does't support virtualization. You should check the BIOS configuration";
     exit 1;
   else
@@ -74,7 +74,7 @@ valid_package() {
 
 valid_package;
 
-# Check and validate this device supporting nested virtualisation
+# Check and validate this device supporting nested virtualization
 valid_nested() {
   echo "${line}"
   echo "Checking if your system supports the nested virtualization";
@@ -158,6 +158,30 @@ valid_workdir() {
 
 valid_workdir;
 
+# Validate if you have at least 1 image in the workdir directory
+valid_one_image() {
+  echo "${line}";
+  echo "Checking if your system has at least 1 OS image";
+  if [[ -z "$(ls ${src_dir})" ]]; then
+    echo -e "${red}FAIL:${reset} The ${red}${src_dir}${reset} directory is empty";
+    echo -e "${blue}INFO:${reset} Installing ${red}ubuntu20.04${reset} image to become base image";
+    wget -nv https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img -O "${src_dir}"/focal-server-cloudimg-amd64.img;
+    if [[ ! -f "focal-server-cloudimg-amd64.img" ]]; then
+      echo -e "${red}FAIL:${reset} Failed to download the image";
+      echo -e "${blue}INFO:${reset} Please fix the problem";
+      exit 1;
+    else
+      echo -e "${green}SUCCESS:${reset} Download image successfully";
+      sleep 2;
+    fi
+  else
+    echo -e "${blue}INFO:${reset} The ${red}${src_dir}${reset} directory has at least 1 image";
+    sleep 2;
+  fi
+}
+
+valid_one_image;
+
 # Validate if the VM name is ready to use
 valid_name() {
   # Prompt to specify th VM name
@@ -176,7 +200,7 @@ valid_name;
 
 # Fill count the memory/RAM size to VM
 valid_mem() {
-  # Prompt to specify thre VM memory size
+  # Prompt to specify the VM memory size
   vm_mem_max="$(grep -i "MemAvailable" /proc/meminfo | awk '{print $2/1048}' | cut -d. -f1)"
   echo -e "${blue}INFO:${reset} Total size memory available is ${red}${vm_mem_max}${reset} MiB";
   echo -e "${yellow}TIPS:${reset} Answer the questions above with the following answers: ${red}512, 1024, 2048, or etc${reset}";
@@ -425,7 +449,7 @@ valid_vir_net() {
   fi
 }
 
-# Select IP Addr and validate the segmen IP
+# Select IP Addr and validate the segment IP
 valid_ip() {
   ip_addr="${ip_gw%%/*}"
   ip_net="$(ipcalc -n "${ip_gw}" | awk -F: '/Network/ {gsub(/ /, "", $2); print $2}' | cut -d/ -f1)"
@@ -488,7 +512,7 @@ valid_processing_vm() {
 valid_cloud_init() {
   # Load the user-data file based on the selected OS
   # This is Ubuntu 22.04 and Ubuntu 20.04 user-data file
-  if [[ "${osfinal[@]}" == "ubuntu22.04" || "${osfinal[@]}" == "ubuntu20.04" ]]; then
+  if [[ "${osfinal[@]}" == ubuntu* ]]; then
     valid_vir_net;
     valid_ip;
     valid_access_login;
@@ -546,7 +570,7 @@ runcmd:
   - cloud-init status --wait
 EOF
     valid_processing_vm;
-  elif [[ "${osfinal[@]}" == "almalinux9" || "${osfinal[@]}" == "centos-stream9" ]]; then
+  elif [[ "${osfinal[@]}" == alma* || "${osfinal[@]}" == centos* ]]; then
     valid_vir_net;
     valid_ip;
     valid_access_login;
@@ -594,7 +618,7 @@ runcmd:
   - cloud-init status --wait
 EOF
     valid_processing_vm;
-  elif [[ "${osfinal[@]}" == "alpinelinux3.21" ]]; then
+  elif [[ "${osfinal[@]}" == alpine* ]]; then
     valid_vir_net;
     valid_ip;
     valid_access_login;
