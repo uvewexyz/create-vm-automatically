@@ -477,7 +477,7 @@ valid_access_login() {
   echo "${line}";
   # Prompt to add public key SSH
   if [[ ! -f ~/.ssh/id_ed25519.pub ]]; then
-    echo "${blue}INFO:${reset} Pubkey not found! Generating new pubkey...";
+    echo -e "${blue}INFO:${reset} Pubkey not found! Generating new pubkey...";
     sleep 2;
     ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -q;
   else
