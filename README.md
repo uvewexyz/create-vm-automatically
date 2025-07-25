@@ -1,81 +1,170 @@
-# Descriptions
-To create a VM automatically, you can use this script to do so. I used this script in a QEMU/KVM environment.
+# Descriptions and Supports
+This script is used for creating a VM based on libvirtd. Your system will be checked for availability for running virtualization with the following prompts:
+- Checking the compatibility system for serving virtualization
+- Checking and installing the libvirtd dependency packages
+- Checking the compatibility of your system with nested virtualization
+- Make sure the 'workdir' directory is ready
+
+After checking is finished, then you must fill out several questions below:
+- Give a name for your VM
+- How much memory
+- Allocate several cores of CPU
+- Select a base image and OS
+- Create a primary disk for the VM
+- Determine many peripheral disks for the VM 
+- Select a virtual network
+- Specify IPv4 for the VM
+- Configure a user, password, and key to access your VM
+- Validate if the VM is successfully created or not
+
+**Attention please**, this script currently only supports running on the Ubuntu base system. Next to do:
+- [x] Ubuntu 20 or later
+- [ ] Debian
+- [ ] Rhel
+- [ ] CentOS
+- [ ] Alpine
 
 # Prerequisites
-Make sure your PC/server/laptop/etc. already has the packages below:
+Don't worry if you are running this script. Your system will install the following dependency packages while running this script:
 1. cpu-checker
-2. qemu-system
-3. qemu-kvm
-4. libvirt-daemon-system
-5. virtinst
+2. ipcalc
+3. whois
+4. qemu-system
+5. libvirt-daemon-system
+6. virtinst
+7. libosinfo-bin
 
-> ### Notes:
-> Verify once more that your device is already set up with Qemu/KVM. This URL can be read and followed if it is not configured:
-> - https://linuxize.com/post/how-to-install-kvm-on-ubuntu-20-04
-> - https://www.freecodecamp.org/news/turn-ubuntu-2404-into-a-kvm-hypervisor
+# Tips and Tricks
+1. If you want to running this script **rootless**. You must uncomment the `#unix_sock_group = "libvirt"` parameter in the `/etc/libvirt/libvirtd.conf` file
+```bash
+sed -i 's/^#unix_sock_group = "libvirt"/unix_sock_group = "libvirt"/g' /etc/libvirt/libvirtd.conf
+```
 
-# Usage Example
-> ### FYI:
-> I run this script with **root** user
+2. Suppose you encounter a problem like this
 
-1. Firstly, download the `create_vm_auto.sh` script
+The solutions is add the `uri_default = "qemu:///system"` parameter in the `.config/libvirt/libvirt.conf` file and allow all permissions to the `libvirt-sock` file. Here is the [reference](https://serverfault.com/questions/803283/how-do-i-list-virsh-networks-without-sudo#:~:text=17,to%20espicify%20%2D%2Dconnect)
+```bash
+cat << EOF > .config/libvirt/libvirt.conf
+uri_default = "qemu:///system"
+EOF
+
+sudo chmod 777 /var/run/libvirt/libvirt-sock
+```
+
+3. Here is the example xml if you don't have a virtual network. You can customize as you wish. Click this [reference](https://libvirt.org/formatnetwork.html#example-configuration)
+```bash
+<network>
+  <name>default</name>
+  <bridge name='virbr0'/>
+  <forward/>
+  <ip address='192.168.1.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.1.2' end='192.168.1.254'/>
+    </dhcp>
+  </ip>
+</network>
+```
+
+4. Allow all permissions and change owner the `workdir` and `images` directory to avoid script can't cloning base image. 
+- The **reasons** is on bellow line in script
+```bash
+qemu-img create -q -b "${src_dir}/${src_img}" -f qcow2 -F qcow2 "${dst_path}" "${vm_disk1_size}"G
+```
+
+- This is way to allow all permissions to `workdir` and `images` directory
+```bash
+sudo chmod -R 777 /var/lib/libvirt/workdir/
+
+sudo chmod -R 777 /var/lib/libvirt/images/
+```
+
+- This is way to change owner the `workdir` and `images` directory
+```bash
+sudo chown -R libvirt-qemu:kvm /var/lib/libvirt/workdir/
+
+sudo chown -R libvirt-qemu:kvm /var/lib/libvirt/images/
+```
+
+5. Clone this repository
 ```bash
 git clone https://github.com/uvewexyz/create-vm-automatically.git
 ```
+
+6. Give the execute permissions to the `virtui.sh` script
 ```bash
-cd create-vm-automatically
+cd ~/create-vm-automatically
+
+chmod +x virtui.sh && ls -l virtui.sh
 ```
 
-2. Give execute permission to the `create_vm_auto.sh` script
+7. Before running the `virtui.sh` script. These are recommended OS image, if you want to install. Follow bellowing step by step:
+- Move the current/working directory
 ```bash
-chmod +x create_vm_auto.sh && ls -l
+cd /var/lib/libvirt/workdir/
 ```
 
-3. Prepare the distro cloud image, follow this step to installing
+- Installing `almalinux9` image
 ```bash
-mkdir /tmp/images
-```
-```bash
-wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img -O /tmp/images/focal-server-cloudimg-amd64.img
-```
-```bash
-wget https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2 -O /tmp/images/almaLinux9-latest.x86_64.img
-```
-```bash
-wget https://downloads.openwrt.org/releases/24.10.1/targets/x86/generic/openwrt-24.10.1-x86-generic-generic-ext4-combined.img.gz -O /tmp/images/openwrt-24.10.1-x86-generic-ext4-combined.img.gz
-
-gunzip /tmp/images/openwrt-24.10.1-x86-generic-ext4-combined.img.gz
-```
-```bash
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img -O /tmp/images/jammy-server-cloudimg-amd64.img
-```
-```bash
-wget https://cloud.centos.org/altarch/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2 -O /tmp/images/centos-stream9-latest.img  
+wget https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
 ```
 
-4. After downloading the distro cloud image, to make it easier to mention the script directory, change the name to `workdir`
+- Installing `centos-stream9` image
 ```bash
-cd .. && mv create-vm-automatically workdir
-```
-```bash
-cd workdir
+wget https://cloud.centos.org/altarch/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2
 ```
 
-5. Usage example
+- Installing `alpine-virt-3.21` image
 ```bash
-./create_vm_auto.sh
+wget https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/x86_64/alpine-virt-3.21.3-x86_64.iso
+
+qemu-img convert -f raw -O qcow2 alpine-virt-3.21.3-x86_64.iso alpine-virt-3.21.3-x86_64.qcow2
 ```
 
-6. Pict
-![image](https://github.com/user-attachments/assets/221769b9-c7cc-4f0e-ad8b-a508a73b5b7c)
-![image](https://github.com/user-attachments/assets/75f98b04-1d98-4c72-b70a-fac85ca5ea38)
-
-7. After running the script you will get new image from the VM installation
+- Installing `ubuntu22.04` image
 ```bash
-ls -l /tmp/workdir/
-
-### Output ###
-...
--rw-r--r-- 1 libvirt-qemu kvm 126353408 May 17 14:19 /tmp/workdir/openwrt-17_05_25_14_18_47.img
-...
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 ```
+
+- Installing `ubuntu20.04` image
+```bash
+wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+```
+
+- Installing, extract, and convert extension to qcow2 the `openwrt` image
+```bash
+wget https://downloads.openwrt.org/releases/24.10.1/targets/x86/generic/openwrt-24.10.1-x86-generic-generic-ext4-combined.img.gz
+
+gunzip openwrt-24.10.1-x86-generic-generic-ext4-combined.img.gz
+
+qemu-img convert -f raw -O qcow2 openwrt-24.10.1-x86-generic-generic-ext4-combined.img openwrt-24.10.1-x86-generic-generic-ext4-combined.qcow2
+```
+
+8. Run the script bellow in this way
+```bash
+./virtui.sh
+```
+
+9. Easily to create or change user password, run the command in bellow
+```bash
+echo "user1:Str0ngPass!" | chpasswd
+```
+
+10. Demonstration
+
+
+# Legends Color information's
+| Legend  |                 Colour               |
+| :-----: |                :------:              |
+| INFO    | $\textsf{\color{lightblue}Blue}$     |
+| SUCCESS | $\textsf{\color{lightgreen}Green}$   |
+| FAIL    | $\textsf{\color{red}Red}$            |
+| TIPS    | $\textsf{\color{yellow}Yellow}$      |
+
+# Reference
+- https://linuxize.com/post/how-to-install-kvm-on-ubuntu-20-04
+- https://www.freecodecamp.org/news/turn-ubuntu-2404-into-a-kvm-hypervisor
+- https://serverfault.com/questions/803283/how-do-i-list-virsh-networks-without-sudo#:~:text=17,to%20espicify%20%2D%2Dconnect
+- https://blog.wikichoon.com/2016/01/qemusystem-vs-qemusession.html?utm_source=chatgpt.com
+- https://libvirt.org/drvqemu.html#driver-instances
+- https://libvirt.org/formatnetwork.html#routed-network-config
+- https://libvirt.org/formatnetwork.html#example-configuration
