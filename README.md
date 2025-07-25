@@ -41,13 +41,15 @@ sed -i 's/^#unix_sock_group = "libvirt"/unix_sock_group = "libvirt"/g' /etc/libv
 ```
 
 2. Suppose you encounter a problem like this
+<img height="300" alt="image" src="https://github.com/user-attachments/assets/973e1495-9d4c-4d6b-9cca-42551e43b7b1" />
 
 The solutions is add the `uri_default = "qemu:///system"` parameter in the `.config/libvirt/libvirt.conf` file and allow all permissions to the `libvirt-sock` file. Here is the [reference](https://serverfault.com/questions/803283/how-do-i-list-virsh-networks-without-sudo#:~:text=17,to%20espicify%20%2D%2Dconnect)
 ```bash
 cat << EOF > .config/libvirt/libvirt.conf
 uri_default = "qemu:///system"
 EOF
-
+```
+```bash
 sudo chmod 777 /var/run/libvirt/libvirt-sock
 ```
 
@@ -74,14 +76,16 @@ qemu-img create -q -b "${src_dir}/${src_img}" -f qcow2 -F qcow2 "${dst_path}" "$
 - This is way to allow all permissions to `workdir` and `images` directory
 ```bash
 sudo chmod -R 777 /var/lib/libvirt/workdir/
-
+```
+```bash
 sudo chmod -R 777 /var/lib/libvirt/images/
 ```
 
 - This is way to change owner the `workdir` and `images` directory
 ```bash
 sudo chown -R libvirt-qemu:kvm /var/lib/libvirt/workdir/
-
+```
+```bash
 sudo chown -R libvirt-qemu:kvm /var/lib/libvirt/images/
 ```
 
@@ -93,7 +97,8 @@ git clone https://github.com/uvewexyz/create-vm-automatically.git
 6. Give the execute permissions to the `virtui.sh` script
 ```bash
 cd ~/create-vm-automatically
-
+```
+```bash
 chmod +x virtui.sh && ls -l virtui.sh
 ```
 
@@ -116,7 +121,8 @@ wget https://cloud.centos.org/altarch/9-stream/x86_64/images/CentOS-Stream-Gener
 - Installing `alpine-virt-3.21` image
 ```bash
 wget https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/x86_64/alpine-virt-3.21.3-x86_64.iso
-
+```
+```bash
 qemu-img convert -f raw -O qcow2 alpine-virt-3.21.3-x86_64.iso alpine-virt-3.21.3-x86_64.qcow2
 ```
 
@@ -133,9 +139,11 @@ wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.i
 - Installing, extract, and convert extension to qcow2 the `openwrt` image
 ```bash
 wget https://downloads.openwrt.org/releases/24.10.1/targets/x86/generic/openwrt-24.10.1-x86-generic-generic-ext4-combined.img.gz
-
+```
+```bash
 gunzip openwrt-24.10.1-x86-generic-generic-ext4-combined.img.gz
-
+```
+```bash
 qemu-img convert -f raw -O qcow2 openwrt-24.10.1-x86-generic-generic-ext4-combined.img openwrt-24.10.1-x86-generic-generic-ext4-combined.qcow2
 ```
 
