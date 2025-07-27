@@ -158,6 +158,8 @@ echo "user1:Str0ngPass!" | chpasswd
 ```
 
 10. Demonstration
+![virtui_demo](https://github.com/user-attachments/assets/148f69bb-7d1d-456a-8f17-6ff2af6332cc)
+![virtui_demo_access](https://github.com/user-attachments/assets/6faa13dd-6126-4f9c-b5a4-cf7c8532d530)
 
 
 # Legends Color information's
